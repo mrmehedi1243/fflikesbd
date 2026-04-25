@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Zap, Calendar, Loader2, Upload, Copy, Check } from "lucide-react";
+import { Zap, Calendar, Loader2, Upload, Copy, Check, Smartphone, Receipt, Image as ImageIcon, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/dashboard/packages")({
@@ -138,37 +138,81 @@ function PackagesPage() {
             )}
 
             {settings && (
-              <Card className="bg-secondary border-border p-3 space-y-2">
-                <div className="text-xs text-muted-foreground">Send ৳{Number(selected?.price_bdt)} via bKash to:</div>
+              <div className="rounded-xl border border-primary/30 bg-gradient-to-br from-primary/10 via-card to-accent/5 p-4 space-y-3">
                 <div className="flex items-center gap-2">
-                  <div className="font-mono font-bold text-lg text-primary tracking-wider">{settings.bkash_number}</div>
-                  <Button size="sm" variant="ghost" onClick={() => { navigator.clipboard.writeText(settings.bkash_number); setCopied(true); setTimeout(() => setCopied(false), 1500); }}>
-                    {copied ? <Check className="w-4 h-4 text-success"/> : <Copy className="w-4 h-4"/>}
-                  </Button>
+                  <div className="w-7 h-7 rounded-lg bg-primary/20 grid place-items-center">
+                    <Smartphone className="w-4 h-4 text-primary" />
+                  </div>
+                  <div className="text-sm font-semibold">bKash Payment</div>
+                  <Badge className="ml-auto bg-primary/20 text-primary border-0 font-bold">৳{Number(selected?.price_bdt)}</Badge>
                 </div>
-                <details className="text-xs text-muted-foreground">
-                  <summary className="cursor-pointer text-foreground">How to pay (instructions)</summary>
-                  <pre className="whitespace-pre-wrap mt-2 font-sans">{settings.payment_instructions.replace("{bkash}", settings.bkash_number)}</pre>
-                </details>
-              </Card>
+
+                <div className="rounded-lg bg-background/60 border border-border p-3">
+                  <div className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1">Send Money to</div>
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="font-mono font-bold text-xl text-primary tracking-wider">{settings.bkash_number}</div>
+                    <Button
+                      size="sm"
+                      variant={copied ? "secondary" : "default"}
+                      className={copied ? "" : "bg-primary text-primary-foreground"}
+                      onClick={() => {
+                        navigator.clipboard.writeText(settings.bkash_number);
+                        setCopied(true);
+                        setTimeout(() => setCopied(false), 1500);
+                      }}
+                    >
+                      {copied ? <><Check className="w-3.5 h-3.5 mr-1"/>Copied</> : <><Copy className="w-3.5 h-3.5 mr-1"/>Copy</>}
+                    </Button>
+                  </div>
+                </div>
+
+                <ol className="space-y-2 text-xs">
+                  <li className="flex gap-2">
+                    <span className="w-5 h-5 shrink-0 rounded-full bg-primary/20 text-primary grid place-items-center font-bold text-[10px]">1</span>
+                    <span>bKash app khulun → <b>Send Money</b> select korun</span>
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="w-5 h-5 shrink-0 rounded-full bg-primary/20 text-primary grid place-items-center font-bold text-[10px]">2</span>
+                    <span>Upore deya number e <b className="text-primary">৳{Number(selected?.price_bdt)}</b> send korun</span>
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="w-5 h-5 shrink-0 rounded-full bg-primary/20 text-primary grid place-items-center font-bold text-[10px]">3</span>
+                    <span>Confirmation SMS theke <b>TrxID</b> niche bosan + <b>screenshot</b> upload korun</span>
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="w-5 h-5 shrink-0 rounded-full bg-success/20 text-success grid place-items-center font-bold text-[10px]">✓</span>
+                    <span>Submit korar pore admin verify korbe (usually 5-30 min)</span>
+                  </li>
+                </ol>
+
+                {settings.payment_instructions && (
+                  <details className="text-xs">
+                    <summary className="cursor-pointer text-muted-foreground hover:text-foreground flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3" /> More details
+                    </summary>
+                    <pre className="whitespace-pre-wrap mt-2 font-sans text-muted-foreground bg-background/40 p-2 rounded border border-border">{settings.payment_instructions.replace("{bkash}", settings.bkash_number)}</pre>
+                  </details>
+                )}
+              </div>
             )}
 
             <div>
-              <Label>bKash Transaction ID (TrxID)</Label>
-              <Input value={trxId} onChange={(e) => setTrxId(e.target.value)} placeholder="e.g. 8N7A2B5C9X" />
+              <Label className="flex items-center gap-1.5"><Receipt className="w-3.5 h-3.5"/> bKash Transaction ID</Label>
+              <Input value={trxId} onChange={(e) => setTrxId(e.target.value)} placeholder="e.g. 8N7A2B5C9X" className="font-mono" />
             </div>
 
             <div>
-              <Label>Payment screenshot</Label>
-              <label className="flex items-center justify-center gap-2 border border-dashed border-border rounded-md py-4 cursor-pointer hover:bg-secondary/50 transition">
-                <Upload className="w-4 h-4 text-muted-foreground"/>
-                <span className="text-sm text-muted-foreground">{file ? file.name : "Tap to upload"}</span>
+              <Label className="flex items-center gap-1.5"><ImageIcon className="w-3.5 h-3.5"/> Payment screenshot</Label>
+              <label className={`flex flex-col items-center justify-center gap-1 border-2 border-dashed rounded-lg py-5 cursor-pointer transition ${file ? "border-success/50 bg-success/5" : "border-border hover:border-primary/50 hover:bg-secondary/50"}`}>
+                {file ? <Check className="w-5 h-5 text-success"/> : <Upload className="w-5 h-5 text-muted-foreground"/>}
+                <span className="text-sm font-medium">{file ? file.name : "Tap to upload screenshot"}</span>
+                <span className="text-[10px] text-muted-foreground">JPG / PNG • Max 5MB</span>
                 <input type="file" accept="image/*" className="hidden" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
               </label>
             </div>
 
             <Button disabled={busy} onClick={submit} className="w-full bg-gradient-primary text-primary-foreground hover:opacity-90 font-semibold">
-              {busy ? <Loader2 className="w-4 h-4 animate-spin"/> : "Submit order"}
+              {busy ? <Loader2 className="w-4 h-4 animate-spin"/> : `Submit Order • ৳${Number(selected?.price_bdt)}`}
             </Button>
           </div>
         </DialogContent>
