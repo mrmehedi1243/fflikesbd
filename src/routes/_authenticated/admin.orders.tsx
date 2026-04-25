@@ -67,8 +67,11 @@ function AdminOrders() {
   async function approve(o: Order) {
     setBusyId(o.id);
     try {
-      // Dispatch first like via our server route
-      const res = await fetch(`/api/dispatch?order_id=${o.id}&first=1`, { method: "POST" });
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch(`/api/dispatch?order_id=${o.id}&first=1`, {
+        method: "POST",
+        headers: session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {},
+      });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || "Dispatch failed");
       toast.success("Approved & first like sent!");
