@@ -14,16 +14,245 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      app_settings: {
+        Row: {
+          banner_api_url: string
+          bkash_number: string
+          id: number
+          like_api_url: string
+          payment_instructions: string
+          updated_at: string
+        }
+        Insert: {
+          banner_api_url: string
+          bkash_number: string
+          id?: number
+          like_api_url: string
+          payment_instructions: string
+          updated_at?: string
+        }
+        Update: {
+          banner_api_url?: string
+          bkash_number?: string
+          id?: number
+          like_api_url?: string
+          payment_instructions?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      like_logs: {
+        Row: {
+          api_response: Json | null
+          created_at: string
+          error_message: string | null
+          id: string
+          likes_sent: number
+          order_id: string
+          run_date: string
+          success: boolean
+        }
+        Insert: {
+          api_response?: Json | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          likes_sent?: number
+          order_id: string
+          run_date?: string
+          success?: boolean
+        }
+        Update: {
+          api_response?: Json | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          likes_sent?: number
+          order_id?: string
+          run_date?: string
+          success?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "like_logs_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          admin_note: string | null
+          approved_at: string | null
+          created_at: string
+          days_completed: number
+          duration_days: number
+          ff_uid: string
+          id: string
+          likes_per_day: number
+          next_run_at: string | null
+          package_id: string
+          payment_screenshot_url: string | null
+          rejection_reason: string | null
+          status: Database["public"]["Enums"]["order_status"]
+          total_likes_sent: number
+          trx_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_note?: string | null
+          approved_at?: string | null
+          created_at?: string
+          days_completed?: number
+          duration_days: number
+          ff_uid: string
+          id?: string
+          likes_per_day: number
+          next_run_at?: string | null
+          package_id: string
+          payment_screenshot_url?: string | null
+          rejection_reason?: string | null
+          status?: Database["public"]["Enums"]["order_status"]
+          total_likes_sent?: number
+          trx_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_note?: string | null
+          approved_at?: string | null
+          created_at?: string
+          days_completed?: number
+          duration_days?: number
+          ff_uid?: string
+          id?: string
+          likes_per_day?: number
+          next_run_at?: string | null
+          package_id?: string
+          payment_screenshot_url?: string | null
+          rejection_reason?: string | null
+          status?: Database["public"]["Enums"]["order_status"]
+          total_likes_sent?: number
+          trx_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "packages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      packages: {
+        Row: {
+          created_at: string
+          description: string | null
+          duration_days: number
+          id: string
+          is_active: boolean
+          likes_per_day: number
+          name: string
+          price_bdt: number
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          duration_days: number
+          id?: string
+          is_active?: boolean
+          likes_per_day: number
+          name: string
+          price_bdt: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          duration_days?: number
+          id?: string
+          is_active?: boolean
+          likes_per_day?: number
+          name?: string
+          price_bdt?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string | null
+          full_name: string | null
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "user"
+      order_status: "pending" | "approved" | "rejected" | "completed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +379,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "user"],
+      order_status: ["pending", "approved", "rejected", "completed"],
+    },
   },
 } as const
