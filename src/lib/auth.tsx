@@ -19,21 +19,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [roleChecked, setRoleChecked] = useState(false);
 
   useEffect(() => {
     const { data: sub } = supabase.auth.onAuthStateChange((_event, sess) => {
       setSession(sess);
       setUser(sess?.user ?? null);
       if (sess?.user) {
+        setRoleChecked(false);
         setTimeout(async () => {
           const { data } = await supabase
             .from("user_roles")
             .select("role")
             .eq("user_id", sess.user.id);
           setIsAdmin(!!data?.some((r) => r.role === "admin"));
+          setRoleChecked(true);
         }, 0);
       } else {
         setIsAdmin(false);
+        setRoleChecked(true);
       }
     });
 
@@ -46,6 +50,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           .select("role")
           .eq("user_id", s.user.id);
         setIsAdmin(!!data?.some((r) => r.role === "admin"));
+        setRoleChecked(true);
+      } else {
+        setRoleChecked(true);
       }
       setLoading(false);
     });
@@ -56,7 +63,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const value: AuthCtx = {
     user,
     session,
-    loading,
+    loading: loading || (!!user && !roleChecked),
     isAdmin,
     signIn: async (email, password) => {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
