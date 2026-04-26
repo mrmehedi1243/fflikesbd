@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
-// Dispatch one like delivery for a single order. Used by admin Approve action.
+// Dispatch delivery for a single order (like or visit). Used by admin Approve action.
 // Auth: requires the authenticated user to be admin.
 export const Route = createFileRoute("/api/dispatch")({
   server: {
@@ -29,7 +29,8 @@ export const Route = createFileRoute("/api/dispatch")({
           if (error || !order) return json({ error: "Order not found" }, 404);
           if (order.status !== "pending" && order.status !== "approved") return json({ error: "Order not active" }, 400);
 
-          const result = await deliverLike(order);
+          const result =
+            order.type === "visit" ? await deliverAllVisits(order) : await deliverLike(order);
           return json(result, result.success ? 200 : 500);
         } catch (e: any) {
           return json({ error: e.message || "Dispatch error" }, 500);
@@ -105,4 +106,92 @@ async function deliverLike(order: any) {
   return { success, likesSent, errorMessage };
 }
 
-export { deliverLike };
+// ---- VISIT DELIVERY ----
+// Visit API gives a fixed batch (e.g. 10k) per call. We loop until package target is met.
+const VISITS_PER_CALL = 10000;
+
+async function deliverAllVisits(order: any) {
+  const { data: settings } = await supabaseAdmin
+    .from("app_settings")
+    .select("visit_api_url")
+    .eq("id", 1)
+    .single();
+  const apiTpl = settings?.visit_api_url || "";
+  if (!apiTpl) return { success: false, errorMessage: "Visit API URL not configured" };
+
+  const target = order.visits_target || 0;
+  if (!target) return { success: false, errorMessage: "Package has no visits target" };
+
+  // Mark approved immediately so user sees movement
+  await supabaseAdmin
+    .from("orders")
+    .update({
+      status: "approved",
+      approved_at: order.approved_at ?? new Date().toISOString(),
+    })
+    .eq("id", order.id);
+
+  let delivered = order.visits_delivered || 0;
+  const callsNeeded = Math.ceil((target - delivered) / VISITS_PER_CALL);
+  let lastError: string | null = null;
+  let anySuccess = false;
+
+  for (let i = 0; i < callsNeeded; i++) {
+    const apiUrl = apiTpl.replace("{uid}", encodeURIComponent(order.ff_uid));
+    let success = false;
+    let errorMessage: string | null = null;
+    let apiResponse: any = null;
+    let visitsThisCall = 0;
+    try {
+      // Visit API can be slow — wait up to 90s
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 90_000);
+      const res = await fetch(apiUrl, { method: "GET", signal: ctrl.signal });
+      clearTimeout(timer);
+      const text = await res.text();
+      try { apiResponse = JSON.parse(text); } catch { apiResponse = { raw: text }; }
+      success = res.ok;
+      if (!res.ok) errorMessage = `HTTP ${res.status}`;
+      if (success) {
+        // Cap at remaining target so we never exceed package size
+        const remaining = target - delivered;
+        visitsThisCall = Math.min(VISITS_PER_CALL, remaining);
+        delivered += visitsThisCall;
+        anySuccess = true;
+      }
+    } catch (e: any) {
+      errorMessage = e.name === "AbortError" ? "Visit API timeout (90s)" : e.message;
+      apiResponse = { error: errorMessage };
+    }
+
+    await supabaseAdmin.from("visit_logs").insert({
+      order_id: order.id,
+      visits_sent: visitsThisCall,
+      success,
+      error_message: errorMessage,
+      api_response: apiResponse,
+    });
+
+    if (!success) { lastError = errorMessage; break; }
+  }
+
+  const completed = delivered >= target;
+  await supabaseAdmin
+    .from("orders")
+    .update({
+      visits_delivered: delivered,
+      status: completed ? "completed" : "approved",
+      next_run_at: null,
+    })
+    .eq("id", order.id);
+
+  return {
+    success: anySuccess,
+    visitsDelivered: delivered,
+    target,
+    completed,
+    errorMessage: lastError,
+  };
+}
+
+export { deliverLike, deliverAllVisits };
