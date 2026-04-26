@@ -8,11 +8,11 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Eye, CheckCircle2, XCircle, Loader2, Image as ImageIcon, Heart } from "lucide-react";
+import { Eye, CheckCircle2, XCircle, Loader2, Image as ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/_authenticated/admin/orders")({
-  component: AdminOrders,
+export const Route = createFileRoute("/_authenticated/admin/visit-orders")({
+  component: AdminVisitOrders,
 });
 
 type Order = {
@@ -22,20 +22,18 @@ type Order = {
   trx_id: string;
   payment_screenshot_url: string | null;
   status: "pending" | "approved" | "rejected" | "completed";
-  type: "like" | "visit";
-  likes_per_day: number;
-  duration_days: number;
-  days_completed: number;
-  total_likes_sent: number;
-  next_run_at: string | null;
+  visits_target: number;
+  visits_delivered: number;
   created_at: string;
   rejection_reason: string | null;
   packages: { name: string; price_bdt: number } | null;
   profiles: { email: string | null; full_name: string | null } | null;
 };
+type VLog = { id: string; order_id: string; visits_sent: number; success: boolean; error_message: string | null; created_at: string };
 
-function AdminOrders() {
+function AdminVisitOrders() {
   const [orders, setOrders] = useState<Order[]>([]);
+  const [logs, setLogs] = useState<Record<string, VLog[]>>({});
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<"pending" | "approved" | "rejected" | "completed" | "all">("pending");
   const [view, setView] = useState<Order | null>(null);
@@ -49,9 +47,16 @@ function AdminOrders() {
     const { data } = await supabase
       .from("orders")
       .select("*, packages(name,price_bdt), profiles!orders_user_id_fkey(email,full_name)")
-      .eq("type", "like")
+      .eq("type", "visit")
       .order("created_at", { ascending: false });
-    setOrders((data ?? []) as unknown as Order[]);
+    const list = (data ?? []) as unknown as Order[];
+    setOrders(list);
+    if (list.length) {
+      const { data: vl } = await supabase.from("visit_logs").select("*").in("order_id", list.map(o => o.id)).order("created_at", { ascending: false });
+      const g: Record<string, VLog[]> = {};
+      (vl ?? []).forEach((row: any) => { (g[row.order_id] = g[row.order_id] || []).push(row); });
+      setLogs(g);
+    }
     setLoading(false);
   }
 
@@ -70,13 +75,14 @@ function AdminOrders() {
     setBusyId(o.id);
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      const res = await fetch(`/api/dispatch?order_id=${o.id}&first=1`, {
+      toast.info("Visit API call hocche... ektu somoy lagte pare");
+      const res = await fetch(`/api/dispatch?order_id=${o.id}`, {
         method: "POST",
         headers: session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {},
       });
       const json = await res.json();
-      if (!res.ok) throw new Error(json.error || "Dispatch failed");
-      toast.success("Approved & first like sent!");
+      if (!res.ok) throw new Error(json.error || json.errorMessage || "Dispatch failed");
+      toast.success(`Delivered ${json.visitsDelivered?.toLocaleString() ?? 0} / ${json.target?.toLocaleString() ?? 0} visits`);
       await load();
     } catch (e: any) {
       toast.error(e.message);
@@ -107,8 +113,8 @@ function AdminOrders() {
   return (
     <div className="space-y-5 max-w-4xl mx-auto">
       <div className="flex items-center gap-2">
-        <Heart className="w-5 h-5 text-primary" />
-        <h1 className="font-display font-bold text-2xl">Like Orders</h1>
+        <Eye className="w-5 h-5 text-accent" />
+        <h1 className="font-display font-bold text-2xl">Visit Orders</h1>
       </div>
 
       <Tabs value={tab} onValueChange={(v) => setTab(v as typeof tab)}>
@@ -122,42 +128,59 @@ function AdminOrders() {
         <TabsContent value={tab} className="space-y-3 mt-4">
           {loading && <div className="text-center py-8"><Loader2 className="w-6 h-6 animate-spin mx-auto text-primary"/></div>}
           {!loading && filtered.length === 0 && (
-            <Card className="bg-gradient-card border-border p-8 text-center text-muted-foreground">No orders here.</Card>
+            <Card className="bg-gradient-card border-border p-8 text-center text-muted-foreground">No visit orders here.</Card>
           )}
-          {filtered.map((o) => (
-            <Card key={o.id} className="bg-gradient-card border-border p-4 space-y-3">
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <div className="font-mono font-bold">{o.ff_uid}</div>
-                  <div className="text-xs text-muted-foreground truncate">{o.profiles?.email ?? "—"}</div>
+          {filtered.map((o) => {
+            const orderLogs = logs[o.id] || [];
+            const successCalls = orderLogs.filter(l => l.success).length;
+            const failedCalls = orderLogs.filter(l => !l.success).length;
+            return (
+              <Card key={o.id} className="bg-gradient-card border-border p-4 space-y-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="font-mono font-bold">{o.ff_uid}</div>
+                    <div className="text-xs text-muted-foreground truncate">{o.profiles?.email ?? "—"}</div>
+                  </div>
+                  <Badge variant="outline" className="capitalize">{o.status}</Badge>
                 </div>
-                <Badge variant="outline" className="capitalize">{o.status}</Badge>
-              </div>
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                <div><span className="text-muted-foreground">Pack:</span> {o.packages?.name} (৳{o.packages ? Number(o.packages.price_bdt) : "?"})</div>
-                <div><span className="text-muted-foreground">TrxID:</span> <span className="font-mono">{o.trx_id}</span></div>
-                <div><span className="text-muted-foreground">Plan:</span> {o.likes_per_day}/day × {o.duration_days}d</div>
-                <div><span className="text-muted-foreground">Sent:</span> {o.total_likes_sent} likes ({o.days_completed}/{o.duration_days})</div>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <Button size="sm" variant="outline" onClick={() => openShot(o)}><Eye className="w-3.5 h-3.5 mr-1"/>View proof</Button>
-                {o.status === "pending" && (
-                  <>
-                    <Button size="sm" disabled={busyId === o.id} onClick={() => approve(o)} className="bg-success text-success-foreground hover:bg-success/90">
-                      {busyId === o.id ? <Loader2 className="w-3.5 h-3.5 animate-spin"/> : <><CheckCircle2 className="w-3.5 h-3.5 mr-1"/>Approve</>}
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div><span className="text-muted-foreground">Pack:</span> {o.packages?.name} (৳{o.packages ? Number(o.packages.price_bdt) : "?"})</div>
+                  <div><span className="text-muted-foreground">TrxID:</span> <span className="font-mono">{o.trx_id}</span></div>
+                </div>
+
+                {/* Visit calculation box */}
+                <div className="rounded-lg border border-accent/30 bg-accent/5 p-3 grid grid-cols-4 gap-2 text-center">
+                  <div><div className="text-[10px] text-muted-foreground">Target</div><div className="font-bold text-accent">{o.visits_target.toLocaleString()}</div></div>
+                  <div><div className="text-[10px] text-muted-foreground">Delivered</div><div className="font-bold text-success">{o.visits_delivered.toLocaleString()}</div></div>
+                  <div><div className="text-[10px] text-muted-foreground">API calls ✓</div><div className="font-bold">{successCalls}</div></div>
+                  <div><div className="text-[10px] text-muted-foreground">Failed</div><div className="font-bold text-destructive">{failedCalls}</div></div>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  <Button size="sm" variant="outline" onClick={() => openShot(o)}><Eye className="w-3.5 h-3.5 mr-1"/>View proof</Button>
+                  {o.status === "pending" && (
+                    <>
+                      <Button size="sm" disabled={busyId === o.id} onClick={() => approve(o)} className="bg-success text-success-foreground hover:bg-success/90">
+                        {busyId === o.id ? <Loader2 className="w-3.5 h-3.5 animate-spin"/> : <><CheckCircle2 className="w-3.5 h-3.5 mr-1"/>Approve & Deliver</>}
+                      </Button>
+                      <Button size="sm" variant="destructive" onClick={() => setReject(o)}><XCircle className="w-3.5 h-3.5 mr-1"/>Reject</Button>
+                    </>
+                  )}
+                  {o.status === "approved" && o.visits_delivered < o.visits_target && (
+                    <Button size="sm" disabled={busyId === o.id} onClick={() => approve(o)} className="bg-primary text-primary-foreground">
+                      {busyId === o.id ? <Loader2 className="w-3.5 h-3.5 animate-spin"/> : "Continue delivery"}
                     </Button>
-                    <Button size="sm" variant="destructive" onClick={() => setReject(o)}><XCircle className="w-3.5 h-3.5 mr-1"/>Reject</Button>
-                  </>
-                )}
-              </div>
-            </Card>
-          ))}
+                  )}
+                </div>
+              </Card>
+            );
+          })}
         </TabsContent>
       </Tabs>
 
       <Dialog open={!!view} onOpenChange={(o) => !o && setView(null)}>
         <DialogContent className="bg-card border-border max-w-lg">
-          <DialogHeader><DialogTitle>Order #{view?.id.slice(0, 8)}</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>Visit Order #{view?.id.slice(0, 8)}</DialogTitle></DialogHeader>
           <div className="space-y-3 text-sm">
             <div className="grid grid-cols-2 gap-2">
               <div><div className="text-xs text-muted-foreground">UID</div><div className="font-mono">{view?.ff_uid}</div></div>

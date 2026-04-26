@@ -1,5 +1,5 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Card } from "@/components/ui/card";
@@ -8,21 +8,47 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Zap, Calendar, Loader2, Upload, Copy, Check, Smartphone, Receipt, Image as ImageIcon, AlertCircle } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Zap, Calendar, Loader2, Upload, Copy, Check, Smartphone, Receipt, Image as ImageIcon, AlertCircle, Heart, Eye } from "lucide-react";
 import { toast } from "sonner";
 
+type SearchT = { type?: "like" | "visit" };
+
 export const Route = createFileRoute("/_authenticated/dashboard/packages")({
+  validateSearch: (s: Record<string, unknown>): SearchT => ({
+    type: s.type === "visit" || s.type === "like" ? s.type : undefined,
+  }),
   component: PackagesPage,
 });
 
-type Pkg = { id: string; name: string; description: string | null; likes_per_day: number; duration_days: number; price_bdt: number; sort_order: number };
-type Settings = { banner_api_url: string; like_api_url: string; bkash_number: string; payment_instructions: string };
+type Pkg = {
+  id: string;
+  name: string;
+  description: string | null;
+  likes_per_day: number;
+  duration_days: number;
+  visits_count: number;
+  price_bdt: number;
+  type: "like" | "visit";
+  image_url: string | null;
+  sort_order: number;
+};
+type Settings = {
+  banner_api_url: string;
+  like_api_url: string;
+  visit_api_url: string;
+  bkash_number: string;
+  bkash_number_visit: string;
+  payment_instructions: string;
+};
 
 function PackagesPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const search = useSearch({ from: "/_authenticated/dashboard/packages" });
   const [pkgs, setPkgs] = useState<Pkg[]>([]);
   const [settings, setSettings] = useState<Settings | null>(null);
+  const [tab, setTab] = useState<"like" | "visit">(search.type ?? "like");
   const [selected, setSelected] = useState<Pkg | null>(null);
   const [uid, setUid] = useState("");
   const [bannerLoaded, setBannerLoaded] = useState(false);
@@ -41,6 +67,12 @@ function PackagesPage() {
       setSettings(s as Settings | null);
     })();
   }, []);
+
+  useEffect(() => { if (search.type) setTab(search.type); }, [search.type]);
+
+  const filtered = useMemo(() => pkgs.filter((p) => p.type === tab), [pkgs, tab]);
+  const isVisit = selected?.type === "visit";
+  const bkashNumber = isVisit ? settings?.bkash_number_visit || settings?.bkash_number : settings?.bkash_number;
 
   function open(p: Pkg) {
     setSelected(p);
@@ -71,6 +103,8 @@ function PackagesPage() {
         payment_screenshot_url: path,
         likes_per_day: selected.likes_per_day,
         duration_days: selected.duration_days,
+        type: selected.type,
+        visits_target: selected.type === "visit" ? selected.visits_count : 0,
       });
       if (insErr) throw insErr;
       toast.success("Order submit hoyeche! Admin verify korar pore start hobe.");
@@ -87,37 +121,62 @@ function PackagesPage() {
     <div className="space-y-5 max-w-3xl mx-auto">
       <div>
         <h1 className="font-display font-bold text-2xl">Packages</h1>
-        <p className="text-sm text-muted-foreground">BD server only • Daily auto likes</p>
+        <p className="text-sm text-muted-foreground">BD server only</p>
       </div>
 
+      <Tabs value={tab} onValueChange={(v) => setTab(v as "like" | "visit")}>
+        <TabsList className="grid grid-cols-2 w-full">
+          <TabsTrigger value="like" className="gap-1.5"><Heart className="w-4 h-4" /> Auto Likes</TabsTrigger>
+          <TabsTrigger value="visit" className="gap-1.5"><Eye className="w-4 h-4" /> Visits</TabsTrigger>
+        </TabsList>
+      </Tabs>
+
       <div className="grid sm:grid-cols-2 gap-3">
-        {pkgs.map((p) => (
-          <Card key={p.id} className="bg-gradient-card border-border p-5 shadow-card">
-            <div className="flex items-start justify-between mb-2">
-              <div>
-                <div className="font-display font-bold text-lg">{p.name}</div>
-                {p.description && <div className="text-xs text-muted-foreground">{p.description}</div>}
+        {filtered.map((p) => (
+          <Card key={p.id} className="bg-gradient-card border-border overflow-hidden shadow-card flex flex-col">
+            {p.image_url && (
+              <div className="aspect-video bg-secondary/30 overflow-hidden">
+                <img src={p.image_url} alt={p.name} className="w-full h-full object-cover" />
               </div>
-              <Badge className="bg-primary/15 text-primary border-0">৳{Number(p.price_bdt)}</Badge>
+            )}
+            <div className="p-5 flex-1 flex flex-col">
+              <div className="flex items-start justify-between mb-2">
+                <div>
+                  <div className="font-display font-bold text-lg">{p.name}</div>
+                  {p.description && <div className="text-xs text-muted-foreground">{p.description}</div>}
+                </div>
+                <Badge className="bg-primary/15 text-primary border-0">৳{Number(p.price_bdt)}</Badge>
+              </div>
+              <div className="flex flex-wrap gap-3 my-3 text-sm">
+                {p.type === "like" ? (
+                  <>
+                    <div className="flex items-center gap-1.5"><Zap className="w-4 h-4 text-primary"/>{p.likes_per_day}/day</div>
+                    <div className="flex items-center gap-1.5"><Calendar className="w-4 h-4 text-accent"/>{p.duration_days} days</div>
+                  </>
+                ) : (
+                  <div className="flex items-center gap-1.5"><Eye className="w-4 h-4 text-accent"/>{p.visits_count.toLocaleString()} visits</div>
+                )}
+              </div>
+              <Button onClick={() => open(p)} className="w-full bg-gradient-primary text-primary-foreground hover:opacity-90 font-semibold mt-auto">Buy now</Button>
             </div>
-            <div className="flex gap-3 my-3 text-sm">
-              <div className="flex items-center gap-1.5"><Zap className="w-4 h-4 text-primary"/>{p.likes_per_day}/day</div>
-              <div className="flex items-center gap-1.5"><Calendar className="w-4 h-4 text-accent"/>{p.duration_days} days</div>
-            </div>
-            <Button onClick={() => open(p)} className="w-full bg-gradient-primary text-primary-foreground hover:opacity-90 font-semibold">Buy now</Button>
           </Card>
         ))}
-        {pkgs.length === 0 && (
-          <Card className="col-span-full bg-gradient-card border-border p-6 text-center text-sm text-muted-foreground">No packages available.</Card>
+        {filtered.length === 0 && (
+          <Card className="col-span-full bg-gradient-card border-border p-6 text-center text-sm text-muted-foreground">No packages in this category yet.</Card>
         )}
       </div>
 
       <Dialog open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>
         <DialogContent className="bg-card border-border max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="font-display">{selected?.name}</DialogTitle>
+            <DialogTitle className="font-display flex items-center gap-2">
+              {isVisit ? <Eye className="w-4 h-4 text-accent" /> : <Heart className="w-4 h-4 text-primary" />}
+              {selected?.name}
+            </DialogTitle>
             <DialogDescription>
-              {selected?.likes_per_day} likes/day × {selected?.duration_days} days = ৳{Number(selected?.price_bdt)}
+              {selected?.type === "like"
+                ? `${selected?.likes_per_day} likes/day × ${selected?.duration_days} days = ৳${Number(selected?.price_bdt)}`
+                : `${selected?.visits_count.toLocaleString()} visits = ৳${Number(selected?.price_bdt)}`}
             </DialogDescription>
           </DialogHeader>
 
@@ -137,26 +196,26 @@ function PackagesPage() {
               </div>
             )}
 
-            {settings && (
-              <div className="rounded-xl border border-primary/30 bg-gradient-to-br from-primary/10 via-card to-accent/5 p-4 space-y-3">
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-primary/20 grid place-items-center">
-                    <Smartphone className="w-4 h-4 text-primary" />
+            {settings && bkashNumber && (
+              <div className="rounded-2xl p-4 space-y-3 border border-pink-300/50 dark:border-pink-400/30 shadow-lg"
+                   style={{ background: "linear-gradient(135deg, #ec4899 0%, #d946ef 50%, #a21caf 100%)" }}>
+                <div className="flex items-center gap-2 text-white">
+                  <div className="w-8 h-8 rounded-lg bg-white/20 grid place-items-center backdrop-blur">
+                    <Smartphone className="w-4 h-4 text-white" />
                   </div>
-                  <div className="text-sm font-semibold">bKash Payment</div>
-                  <Badge className="ml-auto bg-primary/20 text-primary border-0 font-bold">৳{Number(selected?.price_bdt)}</Badge>
+                  <div className="text-sm font-bold">bKash Payment</div>
+                  <Badge className="ml-auto bg-white text-pink-700 border-0 font-bold hover:bg-white">৳{Number(selected?.price_bdt)}</Badge>
                 </div>
 
-                <div className="rounded-lg bg-background/60 border border-border p-3">
-                  <div className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1">Send Money to</div>
+                <div className="rounded-xl bg-white/15 backdrop-blur border border-white/30 p-3">
+                  <div className="text-[10px] uppercase tracking-widest text-white/80 mb-1">Send Money to</div>
                   <div className="flex items-center justify-between gap-2">
-                    <div className="font-mono font-bold text-xl text-primary tracking-wider">{settings.bkash_number}</div>
+                    <div className="font-mono font-bold text-2xl text-white tracking-wider drop-shadow">{bkashNumber}</div>
                     <Button
                       size="sm"
-                      variant={copied ? "secondary" : "default"}
-                      className={copied ? "" : "bg-primary text-primary-foreground"}
+                      className={copied ? "bg-white text-pink-700 hover:bg-white" : "bg-white text-pink-700 hover:bg-white/90 font-bold"}
                       onClick={() => {
-                        navigator.clipboard.writeText(settings.bkash_number);
+                        navigator.clipboard.writeText(bkashNumber);
                         setCopied(true);
                         setTimeout(() => setCopied(false), 1500);
                       }}
@@ -166,31 +225,31 @@ function PackagesPage() {
                   </div>
                 </div>
 
-                <ol className="space-y-2 text-xs">
-                  <li className="flex gap-2">
-                    <span className="w-5 h-5 shrink-0 rounded-full bg-primary/20 text-primary grid place-items-center font-bold text-[10px]">1</span>
+                <ol className="space-y-2 text-xs text-white">
+                  <li className="flex gap-2 items-start">
+                    <span className="w-5 h-5 shrink-0 rounded-full bg-white text-pink-700 grid place-items-center font-bold text-[10px]">1</span>
                     <span>bKash app khulun → <b>Send Money</b> select korun</span>
                   </li>
-                  <li className="flex gap-2">
-                    <span className="w-5 h-5 shrink-0 rounded-full bg-primary/20 text-primary grid place-items-center font-bold text-[10px]">2</span>
-                    <span>Upore deya number e <b className="text-primary">৳{Number(selected?.price_bdt)}</b> send korun</span>
+                  <li className="flex gap-2 items-start">
+                    <span className="w-5 h-5 shrink-0 rounded-full bg-white text-pink-700 grid place-items-center font-bold text-[10px]">2</span>
+                    <span>Upore deya number e <b>৳{Number(selected?.price_bdt)}</b> send korun</span>
                   </li>
-                  <li className="flex gap-2">
-                    <span className="w-5 h-5 shrink-0 rounded-full bg-primary/20 text-primary grid place-items-center font-bold text-[10px]">3</span>
+                  <li className="flex gap-2 items-start">
+                    <span className="w-5 h-5 shrink-0 rounded-full bg-white text-pink-700 grid place-items-center font-bold text-[10px]">3</span>
                     <span>Confirmation SMS theke <b>TrxID</b> niche bosan + <b>screenshot</b> upload korun</span>
                   </li>
-                  <li className="flex gap-2">
-                    <span className="w-5 h-5 shrink-0 rounded-full bg-success/20 text-success grid place-items-center font-bold text-[10px]">✓</span>
+                  <li className="flex gap-2 items-start">
+                    <span className="w-5 h-5 shrink-0 rounded-full bg-emerald-400 text-white grid place-items-center font-bold text-[10px]">✓</span>
                     <span>Submit korar pore admin verify korbe (usually 5-30 min)</span>
                   </li>
                 </ol>
 
                 {settings.payment_instructions && (
-                  <details className="text-xs">
-                    <summary className="cursor-pointer text-muted-foreground hover:text-foreground flex items-center gap-1">
+                  <details className="text-xs text-white/95">
+                    <summary className="cursor-pointer flex items-center gap-1 opacity-90">
                       <AlertCircle className="w-3 h-3" /> More details
                     </summary>
-                    <pre className="whitespace-pre-wrap mt-2 font-sans text-muted-foreground bg-background/40 p-2 rounded border border-border">{settings.payment_instructions.replace("{bkash}", settings.bkash_number)}</pre>
+                    <pre className="whitespace-pre-wrap mt-2 font-sans bg-white/10 p-2 rounded border border-white/20">{settings.payment_instructions.replace("{bkash}", bkashNumber)}</pre>
                   </details>
                 )}
               </div>

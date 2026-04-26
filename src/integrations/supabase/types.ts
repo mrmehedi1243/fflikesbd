@@ -18,25 +18,67 @@ export type Database = {
         Row: {
           banner_api_url: string
           bkash_number: string
+          bkash_number_visit: string
           id: number
           like_api_url: string
           payment_instructions: string
           updated_at: string
+          visit_api_url: string
         }
         Insert: {
           banner_api_url: string
           bkash_number: string
+          bkash_number_visit?: string
           id?: number
           like_api_url: string
           payment_instructions: string
           updated_at?: string
+          visit_api_url?: string
         }
         Update: {
           banner_api_url?: string
           bkash_number?: string
+          bkash_number_visit?: string
           id?: number
           like_api_url?: string
           payment_instructions?: string
+          updated_at?: string
+          visit_api_url?: string
+        }
+        Relationships: []
+      }
+      categories: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean
+          name: string
+          sort_order: number
+          type: Database["public"]["Enums"]["package_type"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          name: string
+          sort_order?: number
+          type?: Database["public"]["Enums"]["package_type"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          name?: string
+          sort_order?: number
+          type?: Database["public"]["Enums"]["package_type"]
           updated_at?: string
         }
         Relationships: []
@@ -99,8 +141,11 @@ export type Database = {
           status: Database["public"]["Enums"]["order_status"]
           total_likes_sent: number
           trx_id: string
+          type: Database["public"]["Enums"]["package_type"]
           updated_at: string
           user_id: string
+          visits_delivered: number
+          visits_target: number
         }
         Insert: {
           admin_note?: string | null
@@ -118,8 +163,11 @@ export type Database = {
           status?: Database["public"]["Enums"]["order_status"]
           total_likes_sent?: number
           trx_id: string
+          type?: Database["public"]["Enums"]["package_type"]
           updated_at?: string
           user_id: string
+          visits_delivered?: number
+          visits_target?: number
         }
         Update: {
           admin_note?: string | null
@@ -137,8 +185,11 @@ export type Database = {
           status?: Database["public"]["Enums"]["order_status"]
           total_likes_sent?: number
           trx_id?: string
+          type?: Database["public"]["Enums"]["package_type"]
           updated_at?: string
           user_id?: string
+          visits_delivered?: number
+          visits_target?: number
         }
         Relationships: [
           {
@@ -152,42 +203,62 @@ export type Database = {
       }
       packages: {
         Row: {
+          category_id: string | null
           created_at: string
           description: string | null
           duration_days: number
           id: string
+          image_url: string | null
           is_active: boolean
           likes_per_day: number
           name: string
           price_bdt: number
           sort_order: number
+          type: Database["public"]["Enums"]["package_type"]
           updated_at: string
+          visits_count: number
         }
         Insert: {
+          category_id?: string | null
           created_at?: string
           description?: string | null
           duration_days: number
           id?: string
+          image_url?: string | null
           is_active?: boolean
           likes_per_day: number
           name: string
           price_bdt: number
           sort_order?: number
+          type?: Database["public"]["Enums"]["package_type"]
           updated_at?: string
+          visits_count?: number
         }
         Update: {
+          category_id?: string | null
           created_at?: string
           description?: string | null
           duration_days?: number
           id?: string
+          image_url?: string | null
           is_active?: boolean
           likes_per_day?: number
           name?: string
           price_bdt?: number
           sort_order?: number
+          type?: Database["public"]["Enums"]["package_type"]
           updated_at?: string
+          visits_count?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "packages_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -237,6 +308,36 @@ export type Database = {
         }
         Relationships: []
       }
+      visit_logs: {
+        Row: {
+          api_response: Json | null
+          created_at: string
+          error_message: string | null
+          id: string
+          order_id: string
+          success: boolean
+          visits_sent: number
+        }
+        Insert: {
+          api_response?: Json | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          order_id: string
+          success?: boolean
+          visits_sent?: number
+        }
+        Update: {
+          api_response?: Json | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          order_id?: string
+          success?: boolean
+          visits_sent?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -253,6 +354,7 @@ export type Database = {
     Enums: {
       app_role: "admin" | "user"
       order_status: "pending" | "approved" | "rejected" | "completed"
+      package_type: "like" | "visit"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -382,6 +484,7 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "user"],
       order_status: ["pending", "approved", "rejected", "completed"],
+      package_type: ["like", "visit"],
     },
   },
 } as const
