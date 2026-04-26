@@ -2,36 +2,31 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
-import { Inbox, ShoppingCart, Users, Zap } from "lucide-react";
+import { Inbox, ShoppingCart, Eye, Heart } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/")({
   component: AdminHome,
 });
 
 function AdminHome() {
-  const [s, setS] = useState({ pending: 0, active: 0, totalOrders: 0, totalLikes: 0 });
+  const [s, setS] = useState({ likePending: 0, likeActive: 0, visitPending: 0, visitActive: 0 });
   useEffect(() => {
     (async () => {
-      const [{ count: pending }, { count: active }, { count: totalOrders }, { data: likes }] = await Promise.all([
-        supabase.from("orders").select("*", { count: "exact", head: true }).eq("status", "pending"),
-        supabase.from("orders").select("*", { count: "exact", head: true }).eq("status", "approved"),
-        supabase.from("orders").select("*", { count: "exact", head: true }),
-        supabase.from("orders").select("total_likes_sent"),
+      const [{ count: lp }, { count: la }, { count: vp }, { count: va }] = await Promise.all([
+        supabase.from("orders").select("*", { count: "exact", head: true }).eq("status", "pending").eq("type", "like"),
+        supabase.from("orders").select("*", { count: "exact", head: true }).eq("status", "approved").eq("type", "like"),
+        supabase.from("orders").select("*", { count: "exact", head: true }).eq("status", "pending").eq("type", "visit"),
+        supabase.from("orders").select("*", { count: "exact", head: true }).eq("status", "approved").eq("type", "visit"),
       ]);
-      setS({
-        pending: pending ?? 0,
-        active: active ?? 0,
-        totalOrders: totalOrders ?? 0,
-        totalLikes: (likes ?? []).reduce((a: number, b: any) => a + (b.total_likes_sent || 0), 0),
-      });
+      setS({ likePending: lp ?? 0, likeActive: la ?? 0, visitPending: vp ?? 0, visitActive: va ?? 0 });
     })();
   }, []);
 
-  const stats = [
-    { label: "Pending Orders", val: s.pending, icon: Inbox, color: "text-warning", to: "/admin/orders" },
-    { label: "Active Orders", val: s.active, icon: Zap, color: "text-success", to: "/admin/orders" },
-    { label: "Total Orders", val: s.totalOrders, icon: ShoppingCart, color: "text-primary", to: "/admin/orders" },
-    { label: "Total Likes Sent", val: s.totalLikes, icon: Users, color: "text-accent", to: "/admin/orders" },
+  const cards = [
+    { label: "Pending Likes", val: s.likePending, icon: Heart, color: "text-warning", to: "/admin/orders" as const },
+    { label: "Active Likes", val: s.likeActive, icon: Inbox, color: "text-success", to: "/admin/orders" as const },
+    { label: "Pending Visits", val: s.visitPending, icon: Eye, color: "text-warning", to: "/admin/visit-orders" as const },
+    { label: "Active Visits", val: s.visitActive, icon: ShoppingCart, color: "text-accent", to: "/admin/visit-orders" as const },
   ];
 
   return (
@@ -41,7 +36,7 @@ function AdminHome() {
         <p className="text-sm text-muted-foreground">Manage everything from here</p>
       </div>
       <div className="grid grid-cols-2 gap-3">
-        {stats.map((st) => (
+        {cards.map((st) => (
           <Link key={st.label} to={st.to}>
             <Card className="bg-gradient-card border-border p-4 hover:border-primary/50 transition">
               <st.icon className={`w-5 h-5 ${st.color} mb-2`} />
