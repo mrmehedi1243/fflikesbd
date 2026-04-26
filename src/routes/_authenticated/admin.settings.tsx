@@ -13,7 +13,14 @@ export const Route = createFileRoute("/_authenticated/admin/settings")({
   component: AdminSettings,
 });
 
-type S = { banner_api_url: string; like_api_url: string; bkash_number: string; payment_instructions: string };
+type S = {
+  banner_api_url: string;
+  like_api_url: string;
+  visit_api_url: string;
+  bkash_number: string;
+  bkash_number_visit: string;
+  payment_instructions: string;
+};
 
 function AdminSettings() {
   const [s, setS] = useState<S | null>(null);
@@ -47,8 +54,16 @@ function AdminSettings() {
           <Input value={s.like_api_url} onChange={(e) => setS({ ...s, like_api_url: e.target.value })} />
         </div>
         <div>
-          <Label>bKash Number</Label>
+          <Label>Visit API URL <span className="text-xs text-muted-foreground">(use {"{uid}"} placeholder, returns ~10k visits per call)</span></Label>
+          <Input value={s.visit_api_url} onChange={(e) => setS({ ...s, visit_api_url: e.target.value })} placeholder="https://your-domain.com/visit?uid={uid}&region=bd" />
+        </div>
+        <div>
+          <Label>bKash Number (Likes)</Label>
           <Input value={s.bkash_number} onChange={(e) => setS({ ...s, bkash_number: e.target.value })} />
+        </div>
+        <div>
+          <Label>bKash Number (Visits)</Label>
+          <Input value={s.bkash_number_visit} onChange={(e) => setS({ ...s, bkash_number_visit: e.target.value })} placeholder="Separate bKash number for visit packages" />
         </div>
         <div>
           <Label>Payment Instructions <span className="text-xs text-muted-foreground">(use {"{bkash}"} placeholder)</span></Label>
