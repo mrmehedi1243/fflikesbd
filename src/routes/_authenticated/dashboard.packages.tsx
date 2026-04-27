@@ -186,13 +186,20 @@ function PackagesPage() {
               <Input value={uid} onChange={(e) => { setUid(e.target.value); setBannerLoaded(false); }} placeholder="Enter your FF UID" inputMode="numeric" />
             </div>
 
-            {uid && /^\d{6,}$/.test(uid) && (
-              <div className="rounded-lg overflow-hidden border border-border bg-muted/30">
-                <div className="px-3 py-2 text-xs text-muted-foreground bg-card border-b border-border">Profile preview</div>
-                <div className="aspect-video grid place-items-center bg-background">
-                  {!bannerLoaded && <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />}
-                  <img src={bannerUrl} alt="FF profile banner" onLoad={() => setBannerLoaded(true)} onError={() => setBannerLoaded(true)} className={`w-full h-full object-contain ${bannerLoaded ? "" : "hidden"}`} />
-                </div>
+            {uid && /^\d{6,}$/.test(uid) && bannerUrl && (
+              <div className="relative">
+                {!bannerLoaded && (
+                  <div className="h-10 grid place-items-center text-xs text-muted-foreground">
+                    <Loader2 className="w-4 h-4 animate-spin" /> Loading profile…
+                  </div>
+                )}
+                <img
+                  src={bannerUrl}
+                  alt="FF profile"
+                  onLoad={() => setBannerLoaded(true)}
+                  onError={() => setBannerLoaded(true)}
+                  className={`block w-full h-auto rounded-lg ${bannerLoaded ? "" : "hidden"}`}
+                />
               </div>
             )}
 
