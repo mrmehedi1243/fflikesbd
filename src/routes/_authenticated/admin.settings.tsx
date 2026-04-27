@@ -67,6 +67,10 @@ function AdminSettings() {
           <Input value={s.bkash_number_visit} onChange={(e) => setS({ ...s, bkash_number_visit: e.target.value })} placeholder="Separate bKash number for visit packages" />
         </div>
         <div>
+          <Label>Admin Telegram <span className="text-xs text-muted-foreground">(shown as a Contact Admin button to users)</span></Label>
+          <Input value={s.admin_telegram} onChange={(e) => setS({ ...s, admin_telegram: e.target.value })} placeholder="@proxaura" />
+        </div>
+        <div>
           <Label>Payment Instructions <span className="text-xs text-muted-foreground">(use {"{bkash}"} placeholder)</span></Label>
           <Textarea rows={6} value={s.payment_instructions} onChange={(e) => setS({ ...s, payment_instructions: e.target.value })} />
         </div>
