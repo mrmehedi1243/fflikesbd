@@ -20,6 +20,7 @@ type S = {
   bkash_number: string;
   bkash_number_visit: string;
   payment_instructions: string;
+  admin_telegram: string;
 };
 
 function AdminSettings() {
