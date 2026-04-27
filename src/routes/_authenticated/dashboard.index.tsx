@@ -45,9 +45,11 @@ function Dashboard() {
           // Real API counts: read from api_response when available, fallback to stored counter
           const realLikes = (n: any) => {
             const r = n?.api_response || {};
-            return Number(
-              r.LikesGivenByAPI ?? r.likes_added ?? r.likes ?? r.LikesAfterCommand - r.LikesbeforeCommand ?? r.added ?? n.likes_sent ?? 0
-            ) || (n.likes_sent || 0);
+            const diff = (typeof r.LikesAfterCommand === "number" && typeof r.LikesbeforeCommand === "number")
+              ? r.LikesAfterCommand - r.LikesbeforeCommand
+              : null;
+            const v = r.LikesGivenByAPI ?? r.likes_added ?? r.likes ?? diff ?? r.added ?? n.likes_sent ?? 0;
+            return Number(v) || (n.likes_sent || 0);
           };
           const realVisits = (n: any) => {
             const r = n?.api_response || {};
