@@ -27,7 +27,7 @@ type Order = {
   created_at: string;
   rejection_reason: string | null;
   packages: { name: string; price_bdt: number } | null;
-  profiles: { email: string | null; full_name: string | null } | null;
+  user_email?: string | null;
 };
 type VLog = { id: string; order_id: string; visits_sent: number; success: boolean; error_message: string | null; created_at: string };
 
@@ -46,17 +46,21 @@ function AdminVisitOrders() {
     setLoading(true);
     const { data } = await supabase
       .from("orders")
-      .select("*, packages(name,price_bdt), profiles!orders_user_id_fkey(email,full_name)")
+      .select("*, packages(name,price_bdt)")
       .eq("type", "visit")
       .order("created_at", { ascending: false });
     const list = (data ?? []) as unknown as Order[];
-    setOrders(list);
     if (list.length) {
+      const ids = Array.from(new Set(list.map((o) => o.user_id)));
+      const { data: profs } = await supabase.from("profiles").select("user_id,email").in("user_id", ids);
+      const map = new Map((profs ?? []).map((p: any) => [p.user_id, p.email]));
+      list.forEach((o) => { o.user_email = map.get(o.user_id) ?? null; });
       const { data: vl } = await supabase.from("visit_logs").select("*").in("order_id", list.map(o => o.id)).order("created_at", { ascending: false });
       const g: Record<string, VLog[]> = {};
       (vl ?? []).forEach((row: any) => { (g[row.order_id] = g[row.order_id] || []).push(row); });
       setLogs(g);
     }
+    setOrders(list);
     setLoading(false);
   }
 
@@ -139,7 +143,7 @@ function AdminVisitOrders() {
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <div className="font-mono font-bold">{o.ff_uid}</div>
-                    <div className="text-xs text-muted-foreground truncate">{o.profiles?.email ?? "—"}</div>
+                    <div className="text-xs text-muted-foreground truncate">{o.user_email ?? "—"}</div>
                   </div>
                   <Badge variant="outline" className="capitalize">{o.status}</Badge>
                 </div>
@@ -185,7 +189,7 @@ function AdminVisitOrders() {
             <div className="grid grid-cols-2 gap-2">
               <div><div className="text-xs text-muted-foreground">UID</div><div className="font-mono">{view?.ff_uid}</div></div>
               <div><div className="text-xs text-muted-foreground">TrxID</div><div className="font-mono">{view?.trx_id}</div></div>
-              <div><div className="text-xs text-muted-foreground">Email</div><div className="truncate">{view?.profiles?.email}</div></div>
+              <div><div className="text-xs text-muted-foreground">Email</div><div className="truncate">{view?.user_email ?? "—"}</div></div>
               <div><div className="text-xs text-muted-foreground">Package</div><div>{view?.packages?.name}</div></div>
             </div>
             <div className="text-xs text-muted-foreground">Payment screenshot</div>
