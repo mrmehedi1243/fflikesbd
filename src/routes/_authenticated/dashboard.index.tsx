@@ -39,11 +39,22 @@ function Dashboard() {
           const since = new Date(); since.setHours(0,0,0,0);
           const sinceIso = since.toISOString();
           const [{ data: ll }, { data: vl }] = await Promise.all([
-            supabase.from("like_logs").select("likes_sent,success,created_at").in("order_id", ids).gte("created_at", sinceIso),
-            supabase.from("visit_logs").select("visits_sent,success,created_at").in("order_id", ids).gte("created_at", sinceIso),
+            supabase.from("like_logs").select("likes_sent,success,api_response,created_at").in("order_id", ids).gte("created_at", sinceIso),
+            supabase.from("visit_logs").select("visits_sent,success,api_response,created_at").in("order_id", ids).gte("created_at", sinceIso),
           ]);
-          setTodayLikes((ll ?? []).filter((r:any)=>r.success).reduce((s:number,r:any)=>s+(r.likes_sent||0),0));
-          setTodayVisits((vl ?? []).filter((r:any)=>r.success).reduce((s:number,r:any)=>s+(r.visits_sent||0),0));
+          // Real API counts: read from api_response when available, fallback to stored counter
+          const realLikes = (n: any) => {
+            const r = n?.api_response || {};
+            return Number(
+              r.LikesGivenByAPI ?? r.likes_added ?? r.likes ?? r.LikesAfterCommand - r.LikesbeforeCommand ?? r.added ?? n.likes_sent ?? 0
+            ) || (n.likes_sent || 0);
+          };
+          const realVisits = (n: any) => {
+            const r = n?.api_response || {};
+            return Number(r.visits_added ?? r.visits ?? r.added ?? r.count ?? n.visits_sent ?? 0) || (n.visits_sent || 0);
+          };
+          setTodayLikes((ll ?? []).filter((r:any)=>r.success).reduce((s:number,r:any)=>s+realLikes(r),0));
+          setTodayVisits((vl ?? []).filter((r:any)=>r.success).reduce((s:number,r:any)=>s+realVisits(r),0));
         }
       }
     })();
