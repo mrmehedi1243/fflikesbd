@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Sparkles, ShoppingCart, BookOpen, ChevronRight, Flame, ArrowRight, Heart, Eye } from "lucide-react";
+import { Sparkles, ShoppingCart, BookOpen, ChevronRight, Flame, ArrowRight, Heart, Eye, Send, TrendingUp } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/dashboard/")({
   component: Dashboard,
@@ -16,17 +16,40 @@ function Dashboard() {
   const { user } = useAuth();
   const [cats, setCats] = useState<Cat[]>([]);
   const [orderCount, setOrderCount] = useState(0);
+  const [tg, setTg] = useState<string>("@proxaura");
+  const [todayLikes, setTodayLikes] = useState(0);
+  const [todayVisits, setTodayVisits] = useState(0);
 
   useEffect(() => {
     (async () => {
-      const [{ data: c }, { count }] = await Promise.all([
+      const [{ data: c }, { count }, { data: settings }] = await Promise.all([
         supabase.from("categories").select("id,name,description,image_url,type").eq("is_active", true).order("sort_order"),
         user ? supabase.from("orders").select("*", { count: "exact", head: true }).eq("user_id", user.id) : Promise.resolve({ count: 0 } as any),
+        supabase.from("app_settings").select("admin_telegram").eq("id", 1).single(),
       ]);
       setCats((c ?? []) as Cat[]);
       setOrderCount(count ?? 0);
+      if (settings?.admin_telegram) setTg(settings.admin_telegram);
+
+      // Today's totals across this user's orders
+      if (user) {
+        const { data: myOrders } = await supabase.from("orders").select("id").eq("user_id", user.id);
+        const ids = (myOrders ?? []).map((o: any) => o.id);
+        if (ids.length) {
+          const since = new Date(); since.setHours(0,0,0,0);
+          const sinceIso = since.toISOString();
+          const [{ data: ll }, { data: vl }] = await Promise.all([
+            supabase.from("like_logs").select("likes_sent,success,created_at").in("order_id", ids).gte("created_at", sinceIso),
+            supabase.from("visit_logs").select("visits_sent,success,created_at").in("order_id", ids).gte("created_at", sinceIso),
+          ]);
+          setTodayLikes((ll ?? []).filter((r:any)=>r.success).reduce((s:number,r:any)=>s+(r.likes_sent||0),0));
+          setTodayVisits((vl ?? []).filter((r:any)=>r.success).reduce((s:number,r:any)=>s+(r.visits_sent||0),0));
+        }
+      }
     })();
   }, [user]);
+
+  const tgHandle = tg.replace(/^@/, "");
 
   return (
     <div className="space-y-5 max-w-3xl mx-auto">
@@ -52,6 +75,24 @@ function Dashboard() {
               <Sparkles className="w-4 h-4 mr-1" /> Browse Packages <ChevronRight className="w-4 h-4 ml-1" />
             </Button>
           </Link>
+        </div>
+      </Card>
+
+      {/* Today's delivery */}
+      <Card className="bg-gradient-card border-border p-4">
+        <div className="flex items-center gap-2 mb-3">
+          <TrendingUp className="w-4 h-4 text-success" />
+          <h2 className="font-display font-bold text-sm">Aaj ki delivery hoyeche</h2>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="rounded-lg p-3 bg-background/60 border border-primary/20">
+            <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground"><Heart className="w-3 h-3 text-primary"/>Likes today</div>
+            <div className="font-display font-bold text-2xl text-primary mt-1">{todayLikes.toLocaleString()}</div>
+          </div>
+          <div className="rounded-lg p-3 bg-background/60 border border-accent/20">
+            <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground"><Eye className="w-3 h-3 text-accent"/>Visits today</div>
+            <div className="font-display font-bold text-2xl text-accent mt-1">{todayVisits.toLocaleString()}</div>
+          </div>
         </div>
       </Card>
 
@@ -106,6 +147,22 @@ function Dashboard() {
           </div>
         </Card>
       </Link>
+
+      {/* Contact Admin */}
+      <a href={`https://t.me/${tgHandle}`} target="_blank" rel="noopener noreferrer">
+        <Card className="bg-gradient-card border-border p-4 flex items-center justify-between hover:border-primary/60 transition">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-[#229ED9]/15 grid place-items-center">
+              <Send className="w-5 h-5 text-[#229ED9]" />
+            </div>
+            <div>
+              <div className="font-semibold">Contact Admin</div>
+              <div className="text-xs text-muted-foreground">Problem hoile Telegram e message dao: {tg}</div>
+            </div>
+          </div>
+          <ArrowRight className="w-4 h-4 text-muted-foreground" />
+        </Card>
+      </a>
 
       {/* How it works */}
       <Card className="bg-gradient-card border-border p-5">

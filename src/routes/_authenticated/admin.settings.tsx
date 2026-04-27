@@ -20,6 +20,7 @@ type S = {
   bkash_number: string;
   bkash_number_visit: string;
   payment_instructions: string;
+  admin_telegram: string;
 };
 
 function AdminSettings() {
@@ -64,6 +65,10 @@ function AdminSettings() {
         <div>
           <Label>bKash Number (Visits)</Label>
           <Input value={s.bkash_number_visit} onChange={(e) => setS({ ...s, bkash_number_visit: e.target.value })} placeholder="Separate bKash number for visit packages" />
+        </div>
+        <div>
+          <Label>Admin Telegram <span className="text-xs text-muted-foreground">(shown as a Contact Admin button to users)</span></Label>
+          <Input value={s.admin_telegram} onChange={(e) => setS({ ...s, admin_telegram: e.target.value })} placeholder="@proxaura" />
         </div>
         <div>
           <Label>Payment Instructions <span className="text-xs text-muted-foreground">(use {"{bkash}"} placeholder)</span></Label>

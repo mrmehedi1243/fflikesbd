@@ -16,6 +16,7 @@ export type Database = {
     Tables: {
       app_settings: {
         Row: {
+          admin_telegram: string
           banner_api_url: string
           bkash_number: string
           bkash_number_visit: string
@@ -26,6 +27,7 @@ export type Database = {
           visit_api_url: string
         }
         Insert: {
+          admin_telegram?: string
           banner_api_url: string
           bkash_number: string
           bkash_number_visit?: string
@@ -36,6 +38,7 @@ export type Database = {
           visit_api_url?: string
         }
         Update: {
+          admin_telegram?: string
           banner_api_url?: string
           bkash_number?: string
           bkash_number_visit?: string

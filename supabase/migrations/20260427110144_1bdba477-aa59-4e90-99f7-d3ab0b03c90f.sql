@@ -1,0 +1,1 @@
+ALTER TABLE public.app_settings ADD COLUMN IF NOT EXISTS admin_telegram text NOT NULL DEFAULT '@proxaura';
