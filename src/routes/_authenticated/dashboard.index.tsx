@@ -167,20 +167,17 @@ function Dashboard() {
         </Card>
       </Link>
 
-      {/* Contact Admin */}
-      <a href={`https://t.me/${tgHandle}`} target="_blank" rel="noopener noreferrer">
-        <Card className="bg-gradient-card border-border p-4 flex items-center justify-between hover:border-primary/60 transition">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-[#229ED9]/15 grid place-items-center">
-              <Send className="w-5 h-5 text-[#229ED9]" />
-            </div>
-            <div>
-              <div className="font-semibold">Contact Admin</div>
-              <div className="text-xs text-muted-foreground">Problem hoile Telegram e message dao: {tg}</div>
-            </div>
-          </div>
-          <ArrowRight className="w-4 h-4 text-muted-foreground" />
-        </Card>
+      {/* Floating Telegram Contact Button */}
+      <a
+        href={`https://t.me/${tgHandle}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Contact admin on Telegram"
+        title={`Contact admin: ${tg}`}
+        className="fixed bottom-24 right-4 z-50 w-14 h-14 rounded-full grid place-items-center bg-[#229ED9] text-white shadow-[0_0_24px_rgba(34,158,217,0.6)] ring-2 ring-[#229ED9]/40 hover:scale-110 active:scale-95 transition"
+      >
+        <Send className="w-6 h-6" />
+        <span className="absolute inset-0 rounded-full animate-ping bg-[#229ED9]/30 -z-10" />
       </a>
 
       {/* How it works */}
