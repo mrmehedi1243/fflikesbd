@@ -28,16 +28,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (sess?.user) {
         setRoleChecked(false);
         setTimeout(async () => {
-          const { data } = await supabase
-            .from("user_roles")
-            .select("role")
-            .eq("user_id", sess.user.id);
-          setIsAdmin(!!data?.some((r) => r.role === "admin"));
-          setRoleChecked(true);
+          try {
+            const { data } = await supabase
+              .from("user_roles")
+              .select("role")
+              .eq("user_id", sess.user.id);
+            setIsAdmin(!!data?.some((r) => r.role === "admin"));
+          } catch {
+            setIsAdmin(false);
+          } finally {
+            setRoleChecked(true);
+            setLoading(false);
+          }
         }, 0);
       } else {
         setIsAdmin(false);
         setRoleChecked(true);
+        setLoading(false);
       }
     });
 
@@ -45,11 +52,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(s);
       setUser(s?.user ?? null);
       if (s?.user) {
-        const { data } = await supabase
-          .from("user_roles")
-          .select("role")
-          .eq("user_id", s.user.id);
-        setIsAdmin(!!data?.some((r) => r.role === "admin"));
+        try {
+          const { data } = await supabase
+            .from("user_roles")
+            .select("role")
+            .eq("user_id", s.user.id);
+          setIsAdmin(!!data?.some((r) => r.role === "admin"));
+        } catch {
+          setIsAdmin(false);
+        }
         setRoleChecked(true);
       } else {
         setRoleChecked(true);
