@@ -143,9 +143,9 @@ async function deliverAllVisits(order: any) {
     let apiResponse: any = null;
     let visitsThisCall = 0;
     try {
-      // Visit API can be slow — wait up to 90s
+      // Visit API can be slow — wait up to 4 minutes for full output
       const ctrl = new AbortController();
-      const timer = setTimeout(() => ctrl.abort(), 90_000);
+      const timer = setTimeout(() => ctrl.abort(), 240_000);
       const res = await fetch(apiUrl, { method: "GET", signal: ctrl.signal });
       clearTimeout(timer);
       const text = await res.text();
@@ -160,7 +160,7 @@ async function deliverAllVisits(order: any) {
         anySuccess = true;
       }
     } catch (e: any) {
-      errorMessage = e.name === "AbortError" ? "Visit API timeout (90s)" : e.message;
+      errorMessage = e.name === "AbortError" ? "Visit API timeout (4 min)" : e.message;
       apiResponse = { error: errorMessage };
     }
 
