@@ -5,6 +5,7 @@ import { useAuth } from "@/lib/auth";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Sparkles, ShoppingCart, BookOpen, ChevronRight, Flame, ArrowRight, Heart, Eye, Send, TrendingUp } from "lucide-react";
+import gsLogo from "@/assets/gs-logo.jpg";
 
 export const Route = createFileRoute("/_authenticated/dashboard/")({
   component: Dashboard,
@@ -77,17 +78,22 @@ function Dashboard() {
         <div className="absolute -right-8 -top-8 w-40 h-40 rounded-full bg-white/10 blur-2xl" />
         <div className="absolute -left-6 -bottom-6 w-32 h-32 rounded-full bg-accent/30 blur-2xl" />
         <div className="relative p-5 text-primary-foreground">
-          <div className="flex items-center gap-2 mb-1">
-            <Flame className="w-4 h-4" />
-            <span className="text-[11px] uppercase tracking-widest opacity-90">BD Server • Free Fire</span>
+          <div className="flex items-center gap-4">
+            <img src={gsLogo} alt="GS Auto Likes" className="w-20 h-20 rounded-xl object-cover shrink-0 ring-2 ring-white/30 shadow-[0_0_24px_rgba(255,140,0,0.45)]" />
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2 mb-1">
+                <Flame className="w-4 h-4" />
+                <span className="text-[11px] uppercase tracking-widest opacity-90">BD Server • Free Fire</span>
+              </div>
+              <div className="font-display font-bold text-xl leading-tight mb-1">Boost your FF profile</div>
+              <div className="text-sm opacity-90 mb-3">Auto Likes ar Profile Visits — apnar UID din, package select korun!</div>
+              <Link to="/dashboard/packages">
+                <Button variant="secondary" size="sm" className="font-semibold">
+                  <Sparkles className="w-4 h-4 mr-1" /> Browse <ChevronRight className="w-4 h-4 ml-1" />
+                </Button>
+              </Link>
+            </div>
           </div>
-          <div className="font-display font-bold text-xl leading-tight mb-1">Boost your FF profile</div>
-          <div className="text-sm opacity-90 mb-4">Auto Likes ar Profile Visits — apnar UID din, package select korun, bas!</div>
-          <Link to="/dashboard/packages">
-            <Button variant="secondary" size="sm" className="font-semibold">
-              <Sparkles className="w-4 h-4 mr-1" /> Browse Packages <ChevronRight className="w-4 h-4 ml-1" />
-            </Button>
-          </Link>
         </div>
       </Card>
 
@@ -161,20 +167,17 @@ function Dashboard() {
         </Card>
       </Link>
 
-      {/* Contact Admin */}
-      <a href={`https://t.me/${tgHandle}`} target="_blank" rel="noopener noreferrer">
-        <Card className="bg-gradient-card border-border p-4 flex items-center justify-between hover:border-primary/60 transition">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-[#229ED9]/15 grid place-items-center">
-              <Send className="w-5 h-5 text-[#229ED9]" />
-            </div>
-            <div>
-              <div className="font-semibold">Contact Admin</div>
-              <div className="text-xs text-muted-foreground">Problem hoile Telegram e message dao: {tg}</div>
-            </div>
-          </div>
-          <ArrowRight className="w-4 h-4 text-muted-foreground" />
-        </Card>
+      {/* Floating Telegram Contact Button */}
+      <a
+        href={`https://t.me/${tgHandle}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Contact admin on Telegram"
+        title={`Contact admin: ${tg}`}
+        className="fixed bottom-24 right-4 z-50 w-14 h-14 rounded-full grid place-items-center bg-[#229ED9] text-white shadow-[0_0_24px_rgba(34,158,217,0.6)] ring-2 ring-[#229ED9]/40 hover:scale-110 active:scale-95 transition"
+      >
+        <Send className="w-6 h-6" />
+        <span className="absolute inset-0 rounded-full animate-ping bg-[#229ED9]/30 -z-10" />
       </a>
 
       {/* How it works */}
