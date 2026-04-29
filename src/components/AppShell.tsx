@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
-import { Flame, LayoutDashboard, Package as Pkg, ShoppingCart, Settings, LogOut, ShieldCheck, Inbox, FolderTree, Eye } from "lucide-react";
+import { Flame, LayoutDashboard, Package as Pkg, ShoppingCart, Settings, LogOut, ShieldCheck, Inbox, FolderTree, Eye, UserCircle2 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import type { ReactNode } from "react";
@@ -13,6 +13,7 @@ export function AppShell({ children, admin = false }: { children: ReactNode; adm
     { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { to: "/dashboard/packages", label: "Packages", icon: Pkg },
     { to: "/dashboard/orders", label: "My Orders", icon: ShoppingCart },
+    { to: "/dashboard/profile", label: "Profile", icon: UserCircle2 },
   ];
   const adminNav = [
     { to: "/admin", label: "Dashboard", icon: LayoutDashboard },

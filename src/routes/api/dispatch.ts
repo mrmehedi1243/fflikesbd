@@ -109,6 +109,26 @@ async function deliverLike(order: any) {
 // ---- VISIT DELIVERY ----
 // Visit API gives a fixed batch (e.g. 10k) per call. We loop until package target is met.
 const VISITS_PER_CALL = 10000;
+const VISIT_CALL_TIMEOUT_MS = 95_000;
+const MAX_VISIT_CALLS_PER_RUN = 1;
+
+function parseVisitCount(apiResponse: any) {
+  const raw =
+    apiResponse?.success ??
+    apiResponse?.visits_added ??
+    apiResponse?.visits ??
+    apiResponse?.added ??
+    apiResponse?.count ??
+    apiResponse?.data?.success ??
+    apiResponse?.data?.visits;
+
+  const parsed = Number(raw);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
+}
+
+function isVisitCallSuccessful(resOk: boolean, apiResponse: any) {
+  return resOk || parseVisitCount(apiResponse) > 0;
+}
 
 async function deliverAllVisits(order: any) {
   const { data: settings } = await supabaseAdmin
@@ -132,35 +152,53 @@ async function deliverAllVisits(order: any) {
     .eq("id", order.id);
 
   let delivered = order.visits_delivered || 0;
-  const callsNeeded = Math.ceil((target - delivered) / VISITS_PER_CALL);
+  const remainingAtStart = Math.max(0, target - delivered);
+  if (remainingAtStart === 0) {
+    await supabaseAdmin
+      .from("orders")
+      .update({ status: "completed", next_run_at: null })
+      .eq("id", order.id);
+
+    return {
+      success: true,
+      visitsDelivered: delivered,
+      target,
+      completed: true,
+      scheduled: false,
+      errorMessage: null,
+    };
+  }
+
+  const callsNeeded = Math.ceil(remainingAtStart / VISITS_PER_CALL);
+  const callsThisRun = Math.min(callsNeeded, MAX_VISIT_CALLS_PER_RUN);
   let lastError: string | null = null;
   let anySuccess = false;
 
-  for (let i = 0; i < callsNeeded; i++) {
+  for (let i = 0; i < callsThisRun; i++) {
     const apiUrl = apiTpl.replace("{uid}", encodeURIComponent(order.ff_uid));
     let success = false;
     let errorMessage: string | null = null;
     let apiResponse: any = null;
     let visitsThisCall = 0;
     try {
-      // Visit API can be slow — wait up to 10 minutes for full output
+      // Keep each run short enough that automatic follow-up can continue in cron.
       const ctrl = new AbortController();
-      const timer = setTimeout(() => ctrl.abort(), 600_000);
+      const timer = setTimeout(() => ctrl.abort(), VISIT_CALL_TIMEOUT_MS);
       const res = await fetch(apiUrl, { method: "GET", signal: ctrl.signal });
       clearTimeout(timer);
       const text = await res.text();
       try { apiResponse = JSON.parse(text); } catch { apiResponse = { raw: text }; }
-      success = res.ok;
-      if (!res.ok) errorMessage = `HTTP ${res.status}`;
+      success = isVisitCallSuccessful(res.ok, apiResponse);
+      if (!success) errorMessage = `HTTP ${res.status}`;
       if (success) {
-        // Cap at remaining target so we never exceed package size
+        const reportedVisits = parseVisitCount(apiResponse);
         const remaining = target - delivered;
-        visitsThisCall = Math.min(VISITS_PER_CALL, remaining);
+        visitsThisCall = Math.min(reportedVisits || VISITS_PER_CALL, remaining);
         delivered += visitsThisCall;
         anySuccess = true;
       }
     } catch (e: any) {
-      errorMessage = e.name === "AbortError" ? "Visit API timeout (10 min)" : e.message;
+      errorMessage = e.name === "AbortError" ? "Visit API timeout" : e.message;
       apiResponse = { error: errorMessage };
     }
 
@@ -176,12 +214,13 @@ async function deliverAllVisits(order: any) {
   }
 
   const completed = delivered >= target;
+  const scheduled = !completed && !lastError && delivered > (order.visits_delivered || 0);
   await supabaseAdmin
     .from("orders")
     .update({
       visits_delivered: delivered,
       status: completed ? "completed" : "approved",
-      next_run_at: null,
+      next_run_at: scheduled ? new Date(Date.now() + 60 * 1000).toISOString() : null,
     })
     .eq("id", order.id);
 
@@ -190,6 +229,7 @@ async function deliverAllVisits(order: any) {
     visitsDelivered: delivered,
     target,
     completed,
+    scheduled,
     errorMessage: lastError,
   };
 }
