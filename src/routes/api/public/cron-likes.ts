@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { deliverLike } from "../dispatch";
+import { deliverAllVisits, deliverLike } from "../dispatch";
 
 // Public cron endpoint — runs every X minutes, processes all orders whose next_run_at <= now.
 // Optional: protect with CRON_SECRET header.
@@ -33,7 +33,7 @@ async function handler({ request }: { request: Request }) {
   const results: any[] = [];
   for (const o of due ?? []) {
     try {
-      const r = await deliverLike(o);
+      const r = o.type === "visit" ? await deliverAllVisits(o) : await deliverLike(o);
       results.push({ id: o.id, ...r });
     } catch (e: any) {
       results.push({ id: o.id, success: false, error: e.message });
