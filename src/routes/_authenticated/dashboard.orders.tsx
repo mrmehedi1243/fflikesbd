@@ -73,31 +73,51 @@ function OrdersPage() {
   const [tab, setTab] = useState<"all" | "pending" | "approved" | "completed" | "rejected">("all");
 
   useEffect(() => {
-    (async () => {
-      if (!user) return;
+    if (!user) return;
+
+    let alive = true;
+    const load = async () => {
       const { data: settings } = await supabase.from("app_settings").select("banner_api_url").eq("id", 1).single();
-      setBannerUrl(settings?.banner_api_url || null);
       const { data } = await supabase
         .from("orders")
         .select("id,ff_uid,status,type,likes_per_day,duration_days,days_completed,total_likes_sent,visits_target,visits_delivered,next_run_at,approved_at,created_at,rejection_reason,packages(name,price_bdt)")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
+
+      if (!alive) return;
+
+      setBannerUrl(settings?.banner_api_url || null);
       const list = (data ?? []) as unknown as Order[];
       setOrders(list);
-      if (list.length) {
-        const ids = list.map((o) => o.id);
-        const [{ data: ll }, { data: vl }] = await Promise.all([
-          supabase.from("like_logs").select("*").in("order_id", ids).order("created_at", { ascending: false }),
-          supabase.from("visit_logs").select("*").in("order_id", ids).order("created_at", { ascending: false }),
-        ]);
-        const gL: Record<string, Log[]> = {};
-        (ll ?? []).forEach((row: any) => { (gL[row.order_id] = gL[row.order_id] || []).push(row); });
-        setLikeLogs(gL);
-        const gV: Record<string, Log[]> = {};
-        (vl ?? []).forEach((row: any) => { (gV[row.order_id] = gV[row.order_id] || []).push(row); });
-        setVisitLogs(gV);
+
+      if (!list.length) {
+        setLikeLogs({});
+        setVisitLogs({});
+        return;
       }
-    })();
+
+      const ids = list.map((o) => o.id);
+      const [{ data: ll }, { data: vl }] = await Promise.all([
+        supabase.from("like_logs").select("*").in("order_id", ids).order("created_at", { ascending: false }),
+        supabase.from("visit_logs").select("*").in("order_id", ids).order("created_at", { ascending: false }),
+      ]);
+
+      if (!alive) return;
+
+      const gL: Record<string, Log[]> = {};
+      (ll ?? []).forEach((row: any) => { (gL[row.order_id] = gL[row.order_id] || []).push(row); });
+      setLikeLogs(gL);
+      const gV: Record<string, Log[]> = {};
+      (vl ?? []).forEach((row: any) => { (gV[row.order_id] = gV[row.order_id] || []).push(row); });
+      setVisitLogs(gV);
+    };
+
+    load();
+    const interval = window.setInterval(load, 15000);
+    return () => {
+      alive = false;
+      window.clearInterval(interval);
+    };
   }, [user]);
 
   const filtered = tab === "all" ? orders : orders.filter((o) => o.status === tab);
