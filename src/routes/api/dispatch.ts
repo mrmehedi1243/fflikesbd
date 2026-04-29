@@ -109,8 +109,7 @@ async function deliverLike(order: any) {
 // ---- VISIT DELIVERY ----
 // Visit API gives a fixed batch (e.g. 10k) per call. We loop until package target is met.
 const VISITS_PER_CALL = 10000;
-const VISIT_CALL_TIMEOUT_MS = 95_000;
-const MAX_VISIT_CALLS_PER_RUN = 1;
+const VISIT_CALL_TIMEOUT_MS = 10 * 60 * 1000;
 
 function parseVisitCount(apiResponse: any) {
   const raw =
@@ -170,18 +169,15 @@ async function deliverAllVisits(order: any) {
   }
 
   const callsNeeded = Math.ceil(remainingAtStart / VISITS_PER_CALL);
-  const callsThisRun = Math.min(callsNeeded, MAX_VISIT_CALLS_PER_RUN);
   let lastError: string | null = null;
-  let anySuccess = false;
 
-  for (let i = 0; i < callsThisRun; i++) {
+  for (let i = 0; i < callsNeeded; i++) {
     const apiUrl = apiTpl.replace("{uid}", encodeURIComponent(order.ff_uid));
     let success = false;
     let errorMessage: string | null = null;
     let apiResponse: any = null;
     let visitsThisCall = 0;
     try {
-      // Keep each run short enough that automatic follow-up can continue in cron.
       const ctrl = new AbortController();
       const timer = setTimeout(() => ctrl.abort(), VISIT_CALL_TIMEOUT_MS);
       const res = await fetch(apiUrl, { method: "GET", signal: ctrl.signal });
@@ -195,7 +191,6 @@ async function deliverAllVisits(order: any) {
         const remaining = target - delivered;
         visitsThisCall = Math.min(reportedVisits || VISITS_PER_CALL, remaining);
         delivered += visitsThisCall;
-        anySuccess = true;
       }
     } catch (e: any) {
       errorMessage = e.name === "AbortError" ? "Visit API timeout" : e.message;
@@ -214,22 +209,21 @@ async function deliverAllVisits(order: any) {
   }
 
   const completed = delivered >= target;
-  const scheduled = !completed && !lastError && delivered > (order.visits_delivered || 0);
   await supabaseAdmin
     .from("orders")
     .update({
       visits_delivered: delivered,
       status: completed ? "completed" : "approved",
-      next_run_at: scheduled ? new Date(Date.now() + 60 * 1000).toISOString() : null,
+      next_run_at: null,
     })
     .eq("id", order.id);
 
   return {
-    success: anySuccess,
+    success: completed,
     visitsDelivered: delivered,
     target,
     completed,
-    scheduled,
+    scheduled: false,
     errorMessage: lastError,
   };
 }

@@ -18,6 +18,7 @@ import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authenticated/dashboard.index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as ApiPublicCronLikesRouteImport } from './routes/api/public/cron-likes'
+import { Route as AuthenticatedDashboardProfileRouteImport } from './routes/_authenticated/dashboard.profile'
 import { Route as AuthenticatedDashboardPackagesRouteImport } from './routes/_authenticated/dashboard.packages'
 import { Route as AuthenticatedDashboardOrdersRouteImport } from './routes/_authenticated/dashboard.orders'
 import { Route as AuthenticatedAdminVisitOrdersRouteImport } from './routes/_authenticated/admin.visit-orders'
@@ -71,6 +72,12 @@ const ApiPublicCronLikesRoute = ApiPublicCronLikesRouteImport.update({
   path: '/api/public/cron-likes',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedDashboardProfileRoute =
+  AuthenticatedDashboardProfileRouteImport.update({
+    id: '/profile',
+    path: '/profile',
+    getParentRoute: () => AuthenticatedDashboardRoute,
+  } as any)
 const AuthenticatedDashboardPackagesRoute =
   AuthenticatedDashboardPackagesRouteImport.update({
     id: '/packages',
@@ -127,6 +134,7 @@ export interface FileRoutesByFullPath {
   '/admin/visit-orders': typeof AuthenticatedAdminVisitOrdersRoute
   '/dashboard/orders': typeof AuthenticatedDashboardOrdersRoute
   '/dashboard/packages': typeof AuthenticatedDashboardPackagesRoute
+  '/dashboard/profile': typeof AuthenticatedDashboardProfileRoute
   '/api/public/cron-likes': typeof ApiPublicCronLikesRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/dashboard/': typeof AuthenticatedDashboardIndexRoute
@@ -142,6 +150,7 @@ export interface FileRoutesByTo {
   '/admin/visit-orders': typeof AuthenticatedAdminVisitOrdersRoute
   '/dashboard/orders': typeof AuthenticatedDashboardOrdersRoute
   '/dashboard/packages': typeof AuthenticatedDashboardPackagesRoute
+  '/dashboard/profile': typeof AuthenticatedDashboardProfileRoute
   '/api/public/cron-likes': typeof ApiPublicCronLikesRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/dashboard': typeof AuthenticatedDashboardIndexRoute
@@ -161,6 +170,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/visit-orders': typeof AuthenticatedAdminVisitOrdersRoute
   '/_authenticated/dashboard/orders': typeof AuthenticatedDashboardOrdersRoute
   '/_authenticated/dashboard/packages': typeof AuthenticatedDashboardPackagesRoute
+  '/_authenticated/dashboard/profile': typeof AuthenticatedDashboardProfileRoute
   '/api/public/cron-likes': typeof ApiPublicCronLikesRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
@@ -180,6 +190,7 @@ export interface FileRouteTypes {
     | '/admin/visit-orders'
     | '/dashboard/orders'
     | '/dashboard/packages'
+    | '/dashboard/profile'
     | '/api/public/cron-likes'
     | '/admin/'
     | '/dashboard/'
@@ -195,6 +206,7 @@ export interface FileRouteTypes {
     | '/admin/visit-orders'
     | '/dashboard/orders'
     | '/dashboard/packages'
+    | '/dashboard/profile'
     | '/api/public/cron-likes'
     | '/admin'
     | '/dashboard'
@@ -213,6 +225,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/visit-orders'
     | '/_authenticated/dashboard/orders'
     | '/_authenticated/dashboard/packages'
+    | '/_authenticated/dashboard/profile'
     | '/api/public/cron-likes'
     | '/_authenticated/admin/'
     | '/_authenticated/dashboard/'
@@ -291,6 +304,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicCronLikesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/dashboard/profile': {
+      id: '/_authenticated/dashboard/profile'
+      path: '/profile'
+      fullPath: '/dashboard/profile'
+      preLoaderRoute: typeof AuthenticatedDashboardProfileRouteImport
+      parentRoute: typeof AuthenticatedDashboardRoute
+    }
     '/_authenticated/dashboard/packages': {
       id: '/_authenticated/dashboard/packages'
       path: '/packages'
@@ -367,6 +387,7 @@ const AuthenticatedAdminRouteWithChildren =
 interface AuthenticatedDashboardRouteChildren {
   AuthenticatedDashboardOrdersRoute: typeof AuthenticatedDashboardOrdersRoute
   AuthenticatedDashboardPackagesRoute: typeof AuthenticatedDashboardPackagesRoute
+  AuthenticatedDashboardProfileRoute: typeof AuthenticatedDashboardProfileRoute
   AuthenticatedDashboardIndexRoute: typeof AuthenticatedDashboardIndexRoute
 }
 
@@ -374,6 +395,7 @@ const AuthenticatedDashboardRouteChildren: AuthenticatedDashboardRouteChildren =
   {
     AuthenticatedDashboardOrdersRoute: AuthenticatedDashboardOrdersRoute,
     AuthenticatedDashboardPackagesRoute: AuthenticatedDashboardPackagesRoute,
+    AuthenticatedDashboardProfileRoute: AuthenticatedDashboardProfileRoute,
     AuthenticatedDashboardIndexRoute: AuthenticatedDashboardIndexRoute,
   }
 
