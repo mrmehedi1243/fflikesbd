@@ -106,6 +106,17 @@ function AdminPackages() {
     load();
   }
 
+  async function toggleActive(p: Pkg, v: boolean) {
+    setItems((prev) => prev.map((x) => x.id === p.id ? { ...x, is_active: v } : x));
+    const { error } = await supabase.from("packages").update({ is_active: v }).eq("id", p.id);
+    if (error) {
+      toast.error(error.message);
+      setItems((prev) => prev.map((x) => x.id === p.id ? { ...x, is_active: !v } : x));
+    } else {
+      toast.success(v ? "Package on" : "Package off");
+    }
+  }
+
   const matchingCats = cats.filter((c) => c.type === form.type);
 
   return (
@@ -133,6 +144,9 @@ function AdminPackages() {
               </div>
             </div>
             <div className="flex gap-2">
+              <div className="flex items-center gap-1 pr-1">
+                <Switch checked={p.is_active} onCheckedChange={(v) => toggleActive(p, v)} />
+              </div>
               <Button size="sm" variant="outline" onClick={() => open(p)}><Pencil className="w-3.5 h-3.5"/></Button>
               <Button size="sm" variant="destructive" onClick={() => del(p.id)}><Trash2 className="w-3.5 h-3.5"/></Button>
             </div>
