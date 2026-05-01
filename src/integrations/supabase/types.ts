@@ -263,6 +263,148 @@ export type Database = {
           },
         ]
       }
+      panel_keys: {
+        Row: {
+          assigned_at: string | null
+          assigned_order_id: string | null
+          created_at: string
+          id: string
+          is_used: boolean
+          key_value: string
+          panel_package_id: string
+        }
+        Insert: {
+          assigned_at?: string | null
+          assigned_order_id?: string | null
+          created_at?: string
+          id?: string
+          is_used?: boolean
+          key_value: string
+          panel_package_id: string
+        }
+        Update: {
+          assigned_at?: string | null
+          assigned_order_id?: string | null
+          created_at?: string
+          id?: string
+          is_used?: boolean
+          key_value?: string
+          panel_package_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "panel_keys_panel_package_id_fkey"
+            columns: ["panel_package_id"]
+            isOneToOne: false
+            referencedRelation: "panel_packages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      panel_orders: {
+        Row: {
+          admin_note: string | null
+          apk_link: string | null
+          approved_at: string | null
+          created_at: string
+          delivered_at: string | null
+          delivered_key: string | null
+          id: string
+          panel_package_id: string
+          payment_screenshot_url: string | null
+          rejection_reason: string | null
+          status: Database["public"]["Enums"]["panel_order_status"]
+          trx_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_note?: string | null
+          apk_link?: string | null
+          approved_at?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          delivered_key?: string | null
+          id?: string
+          panel_package_id: string
+          payment_screenshot_url?: string | null
+          rejection_reason?: string | null
+          status?: Database["public"]["Enums"]["panel_order_status"]
+          trx_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_note?: string | null
+          apk_link?: string | null
+          approved_at?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          delivered_key?: string | null
+          id?: string
+          panel_package_id?: string
+          payment_screenshot_url?: string | null
+          rejection_reason?: string | null
+          status?: Database["public"]["Enums"]["panel_order_status"]
+          trx_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "panel_orders_panel_package_id_fkey"
+            columns: ["panel_package_id"]
+            isOneToOne: false
+            referencedRelation: "panel_packages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      panel_packages: {
+        Row: {
+          apk_link: string | null
+          created_at: string
+          description: string | null
+          duration_label: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean
+          name: string
+          price_bdt: number
+          sort_order: number
+          updated_at: string
+          video_url: string | null
+        }
+        Insert: {
+          apk_link?: string | null
+          created_at?: string
+          description?: string | null
+          duration_label?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          name: string
+          price_bdt: number
+          sort_order?: number
+          updated_at?: string
+          video_url?: string | null
+        }
+        Update: {
+          apk_link?: string | null
+          created_at?: string
+          description?: string | null
+          duration_label?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          name?: string
+          price_bdt?: number
+          sort_order?: number
+          updated_at?: string
+          video_url?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -349,6 +491,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      approve_panel_order: {
+        Args: { _manual_key?: string; _order_id: string }
+        Returns: {
+          key_value: string
+          message: string
+          success: boolean
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -361,6 +511,7 @@ export type Database = {
       app_role: "admin" | "user"
       order_status: "pending" | "approved" | "rejected" | "completed"
       package_type: "like" | "visit"
+      panel_order_status: "pending" | "approved" | "rejected" | "delivered"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -491,6 +642,7 @@ export const Constants = {
       app_role: ["admin", "user"],
       order_status: ["pending", "approved", "rejected", "completed"],
       package_type: ["like", "visit"],
+      panel_order_status: ["pending", "approved", "rejected", "delivered"],
     },
   },
 } as const
