@@ -2,23 +2,25 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
-import { Inbox, ShoppingCart, Eye, Heart } from "lucide-react";
+import { Inbox, ShoppingCart, Eye, Heart, KeyRound } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/")({
   component: AdminHome,
 });
 
 function AdminHome() {
-  const [s, setS] = useState({ likePending: 0, likeActive: 0, visitPending: 0, visitActive: 0 });
+  const [s, setS] = useState({ likePending: 0, likeActive: 0, visitPending: 0, visitActive: 0, panelPending: 0, panelDelivered: 0 });
   useEffect(() => {
     (async () => {
-      const [{ count: lp }, { count: la }, { count: vp }, { count: va }] = await Promise.all([
+      const [{ count: lp }, { count: la }, { count: vp }, { count: va }, { count: pp }, { count: pd }] = await Promise.all([
         supabase.from("orders").select("*", { count: "exact", head: true }).eq("status", "pending").eq("type", "like"),
         supabase.from("orders").select("*", { count: "exact", head: true }).eq("status", "approved").eq("type", "like"),
         supabase.from("orders").select("*", { count: "exact", head: true }).eq("status", "pending").eq("type", "visit"),
         supabase.from("orders").select("*", { count: "exact", head: true }).eq("status", "approved").eq("type", "visit"),
+        supabase.from("panel_orders").select("*", { count: "exact", head: true }).eq("status", "pending"),
+        supabase.from("panel_orders").select("*", { count: "exact", head: true }).eq("status", "delivered"),
       ]);
-      setS({ likePending: lp ?? 0, likeActive: la ?? 0, visitPending: vp ?? 0, visitActive: va ?? 0 });
+      setS({ likePending: lp ?? 0, likeActive: la ?? 0, visitPending: vp ?? 0, visitActive: va ?? 0, panelPending: pp ?? 0, panelDelivered: pd ?? 0 });
     })();
   }, []);
 
@@ -27,6 +29,8 @@ function AdminHome() {
     { label: "Active Likes", val: s.likeActive, icon: Inbox, color: "text-success", to: "/admin/orders" as const },
     { label: "Pending Visits", val: s.visitPending, icon: Eye, color: "text-warning", to: "/admin/visit-orders" as const },
     { label: "Active Visits", val: s.visitActive, icon: ShoppingCart, color: "text-accent", to: "/admin/visit-orders" as const },
+    { label: "Pending Panels", val: s.panelPending, icon: KeyRound, color: "text-warning", to: "/admin/panels" as const },
+    { label: "Delivered Panels", val: s.panelDelivered, icon: KeyRound, color: "text-success", to: "/admin/panels" as const },
   ];
 
   return (
