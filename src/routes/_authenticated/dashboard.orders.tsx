@@ -5,7 +5,9 @@ import { useAuth } from "@/lib/auth";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Calendar, Zap, Clock, CheckCircle2, XCircle, Hourglass, Eye, Heart } from "lucide-react";
+import { Calendar, Zap, Clock, CheckCircle2, XCircle, Hourglass, Eye, Heart, KeyRound, Copy, Check, Download } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/dashboard/orders")({
   component: OrdersPage,
@@ -29,6 +31,16 @@ type Order = {
   packages: { name: string; price_bdt: number } | null;
 };
 type Log = { id: string; order_id: string; run_date?: string; likes_sent?: number; visits_sent?: number; success: boolean; error_message: string | null; created_at: string };
+type PanelOrder = {
+  id: string;
+  status: "pending" | "approved" | "rejected" | "delivered";
+  trx_id: string;
+  delivered_key: string | null;
+  apk_link: string | null;
+  rejection_reason: string | null;
+  created_at: string;
+  panel_packages: { name: string; price_bdt: number; apk_link: string | null } | null;
+};
 
 function Countdown({ to }: { to: string }) {
   const [now, setNow] = useState(Date.now());
@@ -67,6 +79,7 @@ function statusBadge(s: Order["status"]) {
 function OrdersPage() {
   const { user } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
+  const [panelOrders, setPanelOrders] = useState<PanelOrder[]>([]);
   const [likeLogs, setLikeLogs] = useState<Record<string, Log[]>>({});
   const [visitLogs, setVisitLogs] = useState<Record<string, Log[]>>({});
   const [bannerUrl, setBannerUrl] = useState<string | null>(null);
@@ -89,6 +102,13 @@ function OrdersPage() {
       setBannerUrl(settings?.banner_api_url || null);
       const list = (data ?? []) as unknown as Order[];
       setOrders(list);
+
+      const { data: pos } = await supabase
+        .from("panel_orders")
+        .select("id,status,trx_id,delivered_key,apk_link,rejection_reason,created_at,panel_packages(name,price_bdt,apk_link)")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+      if (alive) setPanelOrders((pos ?? []) as unknown as PanelOrder[]);
 
       if (!list.length) {
         setLikeLogs({});
@@ -125,6 +145,41 @@ function OrdersPage() {
   return (
     <div className="space-y-5 max-w-3xl mx-auto">
       <h1 className="font-display font-bold text-2xl">My Orders</h1>
+
+      {panelOrders.length > 0 && (
+        <div className="space-y-3">
+          <div className="text-sm font-semibold flex items-center gap-1.5"><KeyRound className="w-4 h-4 text-primary"/>Panel Orders</div>
+          {panelOrders.map((p) => (
+            <Card key={p.id} className="bg-gradient-card border-border p-4 space-y-2">
+              <div className="flex items-center justify-between gap-2">
+                <div className="min-w-0">
+                  <div className="font-semibold truncate">{p.panel_packages?.name ?? "Panel"}</div>
+                  <div className="text-xs text-muted-foreground">TrxID: <span className="font-mono">{p.trx_id}</span></div>
+                </div>
+                <Badge className={`border gap-1 ${p.status === "delivered" ? "bg-success/15 text-success border-success/30" : p.status === "rejected" ? "bg-destructive/15 text-destructive border-destructive/30" : "bg-warning/15 text-warning border-warning/30"}`}>
+                  {p.status === "delivered" ? <CheckCircle2 className="w-3 h-3"/> : p.status === "rejected" ? <XCircle className="w-3 h-3"/> : <Hourglass className="w-3 h-3"/>}
+                  {p.status}
+                </Badge>
+              </div>
+              {p.status === "delivered" && p.delivered_key && (
+                <div className="rounded-lg border border-success/30 bg-success/5 p-3 space-y-2">
+                  <div className="text-xs text-muted-foreground">Your Key</div>
+                  <div className="flex items-center gap-2">
+                    <code className="flex-1 font-mono text-sm bg-background border border-border rounded px-2 py-1.5 break-all">{p.delivered_key}</code>
+                    <Button size="sm" variant="outline" onClick={() => { navigator.clipboard.writeText(p.delivered_key!); toast.success("Copied"); }}><Copy className="w-3.5 h-3.5"/></Button>
+                  </div>
+                  {(p.apk_link || p.panel_packages?.apk_link) && (
+                    <a href={(p.apk_link || p.panel_packages?.apk_link)!} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline">
+                      <Download className="w-3.5 h-3.5"/>Download latest APK
+                    </a>
+                  )}
+                </div>
+              )}
+              {p.status === "rejected" && p.rejection_reason && <div className="text-sm text-destructive">Reason: {p.rejection_reason}</div>}
+            </Card>
+          ))}
+        </div>
+      )}
 
       <Tabs value={tab} onValueChange={(v) => setTab(v as typeof tab)}>
         <TabsList className="grid grid-cols-5 w-full">
