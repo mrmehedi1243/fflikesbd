@@ -166,10 +166,9 @@ function AdminPanels() {
   async function approveOrder(o: Order, manual?: string) {
     setBusyId(o.id);
     try {
-      const { data, error } = await supabase.rpc("approve_panel_order", {
-        _order_id: o.id,
-        _manual_key: manual && manual.trim() ? manual.trim() : null,
-      });
+      const args: { _order_id: string; _manual_key?: string } = { _order_id: o.id };
+      if (manual && manual.trim()) args._manual_key = manual.trim();
+      const { data, error } = await supabase.rpc("approve_panel_order", args);
       if (error) throw error;
       const row = Array.isArray(data) ? data[0] : data;
       if (!row?.success) throw new Error(row?.message || "Failed");
