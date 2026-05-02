@@ -37,7 +37,7 @@ export function AppShell({ children, admin = false }: { children: ReactNode; adm
               <Flame className="w-4 h-4 text-primary-foreground" />
             </div>
             <div>
-              <div className="font-display font-bold text-sm leading-none">BDX STORE</div>
+              <div className="font-display font-bold text-sm leading-none">GS STORE</div>
               {admin && <div className="text-[10px] text-accent leading-none mt-0.5 flex items-center gap-1"><ShieldCheck className="w-3 h-3"/>ADMIN</div>}
             </div>
           </Link>
