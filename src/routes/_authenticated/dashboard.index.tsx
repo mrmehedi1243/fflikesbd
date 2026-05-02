@@ -69,7 +69,7 @@ function Dashboard() {
     <div className="space-y-5 max-w-3xl mx-auto">
       <div>
         <h1 className="font-display font-bold text-2xl">Hi, {user?.email?.split("@")[0]} 👋</h1>
-        <p className="text-sm text-muted-foreground">Welcome to GS Auto Likes Store</p>
+        <p className="text-sm text-muted-foreground">Welcome to BDX STORE</p>
       </div>
 
       {/* Hero */}
@@ -79,7 +79,7 @@ function Dashboard() {
         <div className="absolute -left-6 -bottom-6 w-32 h-32 rounded-full bg-accent/30 blur-2xl" />
         <div className="relative p-5 text-primary-foreground">
           <div className="flex items-center gap-4">
-            <img src={gsLogo} alt="GS Auto Likes" className="w-20 h-20 rounded-xl object-cover shrink-0 ring-2 ring-white/30 shadow-[0_0_24px_rgba(255,140,0,0.45)]" />
+            <img src={gsLogo} alt="BDX STORE" className="w-20 h-20 rounded-xl object-cover shrink-0 ring-2 ring-white/30 shadow-[0_0_24px_rgba(255,140,0,0.45)]" />
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2 mb-1">
                 <Flame className="w-4 h-4" />
