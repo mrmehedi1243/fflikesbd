@@ -8,9 +8,9 @@ import { Flame, Zap, ShieldCheck, Clock, Wallet, Trophy } from "lucide-react";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "BDX STORE — Free Fire BD Auto Like Service" },
+      { title: "GS STORE — Free Fire BD Auto Like Service" },
       { name: "description", content: "Buy auto likes for your Free Fire BD account. Daily delivery via secure API. Cheapest packages, instant approval." },
-      { property: "og:title", content: "BDX STORE" },
+      { property: "og:title", content: "GS STORE" },
       { property: "og:description", content: "Free Fire BD auto like service. Daily delivery for 3-30 days." },
     ],
   }),
@@ -34,7 +34,7 @@ function Landing() {
           <div className="w-9 h-9 rounded-lg bg-gradient-primary grid place-items-center shadow-glow">
             <Flame className="w-5 h-5 text-primary-foreground" />
           </div>
-          <span className="font-display font-bold text-lg">BDX STORE</span>
+          <span className="font-display font-bold text-lg">GS STORE</span>
         </Link>
         <Link to="/auth">
           <Button size="sm" className="bg-gradient-primary text-primary-foreground hover:opacity-90">Login</Button>
@@ -87,7 +87,7 @@ function Landing() {
               <Clock className="w-6 h-6 text-accent" />
             </div>
             <div>
-              <h3 className="font-display font-bold text-lg">Why BDX STORE?</h3>
+              <h3 className="font-display font-bold text-lg">Why GS STORE?</h3>
               <ul className="mt-2 space-y-1 text-sm text-muted-foreground list-disc list-inside">
                 <li>BD server only, real likes via secure API</li>
                 <li>24h timer countdown apnar dashboard e</li>
@@ -100,7 +100,7 @@ function Landing() {
       </section>
 
       <footer className="px-5 py-8 text-center text-xs text-muted-foreground">
-        © {new Date().getFullYear()} BDX STORE. For BD server only.
+        © {new Date().getFullYear()} GS STORE. For BD server only.
       </footer>
     </div>
   );

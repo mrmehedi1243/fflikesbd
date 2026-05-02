@@ -10,7 +10,7 @@ import { Flame, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/auth")({
-  head: () => ({ meta: [{ title: "Login • BDX STORE" }] }),
+  head: () => ({ meta: [{ title: "Login • GS STORE" }] }),
   component: AuthPage,
 });
 
@@ -60,7 +60,7 @@ function AuthPage() {
           <div className="w-9 h-9 rounded-lg bg-gradient-primary grid place-items-center shadow-glow">
             <Flame className="w-5 h-5 text-primary-foreground" />
           </div>
-          <span className="font-display font-bold text-lg">BDX STORE</span>
+          <span className="font-display font-bold text-lg">GS STORE</span>
         </Link>
       </header>
       <div className="flex-1 grid place-items-center px-5 py-8">
