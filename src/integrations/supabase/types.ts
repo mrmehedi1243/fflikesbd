@@ -23,6 +23,7 @@ export type Database = {
           id: number
           like_api_url: string
           payment_instructions: string
+          rupantor_enabled: boolean
           updated_at: string
           visit_api_url: string
         }
@@ -34,6 +35,7 @@ export type Database = {
           id?: number
           like_api_url: string
           payment_instructions: string
+          rupantor_enabled?: boolean
           updated_at?: string
           visit_api_url?: string
         }
@@ -45,6 +47,7 @@ export type Database = {
           id?: number
           like_api_url?: string
           payment_instructions?: string
+          rupantor_enabled?: boolean
           updated_at?: string
           visit_api_url?: string
         }
@@ -139,7 +142,10 @@ export type Database = {
           likes_per_day: number
           next_run_at: string | null
           package_id: string
+          payment_provider: string | null
+          payment_ref: string | null
           payment_screenshot_url: string | null
+          payment_url: string | null
           rejection_reason: string | null
           status: Database["public"]["Enums"]["order_status"]
           total_likes_sent: number
@@ -161,7 +167,10 @@ export type Database = {
           likes_per_day: number
           next_run_at?: string | null
           package_id: string
+          payment_provider?: string | null
+          payment_ref?: string | null
           payment_screenshot_url?: string | null
+          payment_url?: string | null
           rejection_reason?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           total_likes_sent?: number
@@ -183,7 +192,10 @@ export type Database = {
           likes_per_day?: number
           next_run_at?: string | null
           package_id?: string
+          payment_provider?: string | null
+          payment_ref?: string | null
           payment_screenshot_url?: string | null
+          payment_url?: string | null
           rejection_reason?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           total_likes_sent?: number
