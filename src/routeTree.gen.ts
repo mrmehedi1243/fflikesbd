@@ -12,11 +12,13 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiRupantorCreateRouteImport } from './routes/api/rupantor-create'
 import { Route as ApiDispatchRouteImport } from './routes/api/dispatch'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authenticated/dashboard.index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
+import { Route as ApiPublicRupantorCallbackRouteImport } from './routes/api/public/rupantor-callback'
 import { Route as ApiPublicCronLikesRouteImport } from './routes/api/public/cron-likes'
 import { Route as AuthenticatedDashboardProfileRouteImport } from './routes/_authenticated/dashboard.profile'
 import { Route as AuthenticatedDashboardPanelsRouteImport } from './routes/_authenticated/dashboard.panels'
@@ -41,6 +43,11 @@ const AuthenticatedRoute = AuthenticatedRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiRupantorCreateRoute = ApiRupantorCreateRouteImport.update({
+  id: '/api/rupantor-create',
+  path: '/api/rupantor-create',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiDispatchRoute = ApiDispatchRouteImport.update({
@@ -69,6 +76,12 @@ const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedAdminRoute,
 } as any)
+const ApiPublicRupantorCallbackRoute =
+  ApiPublicRupantorCallbackRouteImport.update({
+    id: '/api/public/rupantor-callback',
+    path: '/api/public/rupantor-callback',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicCronLikesRoute = ApiPublicCronLikesRouteImport.update({
   id: '/api/public/cron-likes',
   path: '/api/public/cron-likes',
@@ -141,6 +154,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRouteWithChildren
   '/api/dispatch': typeof ApiDispatchRoute
+  '/api/rupantor-create': typeof ApiRupantorCreateRoute
   '/admin/categories': typeof AuthenticatedAdminCategoriesRoute
   '/admin/orders': typeof AuthenticatedAdminOrdersRoute
   '/admin/packages': typeof AuthenticatedAdminPackagesRoute
@@ -152,6 +166,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/panels': typeof AuthenticatedDashboardPanelsRoute
   '/dashboard/profile': typeof AuthenticatedDashboardProfileRoute
   '/api/public/cron-likes': typeof ApiPublicCronLikesRoute
+  '/api/public/rupantor-callback': typeof ApiPublicRupantorCallbackRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/dashboard/': typeof AuthenticatedDashboardIndexRoute
 }
@@ -159,6 +174,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/api/dispatch': typeof ApiDispatchRoute
+  '/api/rupantor-create': typeof ApiRupantorCreateRoute
   '/admin/categories': typeof AuthenticatedAdminCategoriesRoute
   '/admin/orders': typeof AuthenticatedAdminOrdersRoute
   '/admin/packages': typeof AuthenticatedAdminPackagesRoute
@@ -170,6 +186,7 @@ export interface FileRoutesByTo {
   '/dashboard/panels': typeof AuthenticatedDashboardPanelsRoute
   '/dashboard/profile': typeof AuthenticatedDashboardProfileRoute
   '/api/public/cron-likes': typeof ApiPublicCronLikesRoute
+  '/api/public/rupantor-callback': typeof ApiPublicRupantorCallbackRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/dashboard': typeof AuthenticatedDashboardIndexRoute
 }
@@ -181,6 +198,7 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRouteWithChildren
   '/api/dispatch': typeof ApiDispatchRoute
+  '/api/rupantor-create': typeof ApiRupantorCreateRoute
   '/_authenticated/admin/categories': typeof AuthenticatedAdminCategoriesRoute
   '/_authenticated/admin/orders': typeof AuthenticatedAdminOrdersRoute
   '/_authenticated/admin/packages': typeof AuthenticatedAdminPackagesRoute
@@ -192,6 +210,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard/panels': typeof AuthenticatedDashboardPanelsRoute
   '/_authenticated/dashboard/profile': typeof AuthenticatedDashboardProfileRoute
   '/api/public/cron-likes': typeof ApiPublicCronLikesRoute
+  '/api/public/rupantor-callback': typeof ApiPublicRupantorCallbackRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
 }
@@ -203,6 +222,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/dashboard'
     | '/api/dispatch'
+    | '/api/rupantor-create'
     | '/admin/categories'
     | '/admin/orders'
     | '/admin/packages'
@@ -214,6 +234,7 @@ export interface FileRouteTypes {
     | '/dashboard/panels'
     | '/dashboard/profile'
     | '/api/public/cron-likes'
+    | '/api/public/rupantor-callback'
     | '/admin/'
     | '/dashboard/'
   fileRoutesByTo: FileRoutesByTo
@@ -221,6 +242,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/api/dispatch'
+    | '/api/rupantor-create'
     | '/admin/categories'
     | '/admin/orders'
     | '/admin/packages'
@@ -232,6 +254,7 @@ export interface FileRouteTypes {
     | '/dashboard/panels'
     | '/dashboard/profile'
     | '/api/public/cron-likes'
+    | '/api/public/rupantor-callback'
     | '/admin'
     | '/dashboard'
   id:
@@ -242,6 +265,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/dashboard'
     | '/api/dispatch'
+    | '/api/rupantor-create'
     | '/_authenticated/admin/categories'
     | '/_authenticated/admin/orders'
     | '/_authenticated/admin/packages'
@@ -253,6 +277,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard/panels'
     | '/_authenticated/dashboard/profile'
     | '/api/public/cron-likes'
+    | '/api/public/rupantor-callback'
     | '/_authenticated/admin/'
     | '/_authenticated/dashboard/'
   fileRoutesById: FileRoutesById
@@ -262,7 +287,9 @@ export interface RootRouteChildren {
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   AuthRoute: typeof AuthRoute
   ApiDispatchRoute: typeof ApiDispatchRoute
+  ApiRupantorCreateRoute: typeof ApiRupantorCreateRoute
   ApiPublicCronLikesRoute: typeof ApiPublicCronLikesRoute
+  ApiPublicRupantorCallbackRoute: typeof ApiPublicRupantorCallbackRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -286,6 +313,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/rupantor-create': {
+      id: '/api/rupantor-create'
+      path: '/api/rupantor-create'
+      fullPath: '/api/rupantor-create'
+      preLoaderRoute: typeof ApiRupantorCreateRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/dispatch': {
@@ -322,6 +356,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/'
       preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/api/public/rupantor-callback': {
+      id: '/api/public/rupantor-callback'
+      path: '/api/public/rupantor-callback'
+      fullPath: '/api/public/rupantor-callback'
+      preLoaderRoute: typeof ApiPublicRupantorCallbackRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/public/cron-likes': {
       id: '/api/public/cron-likes'
@@ -467,7 +508,9 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   AuthRoute: AuthRoute,
   ApiDispatchRoute: ApiDispatchRoute,
+  ApiRupantorCreateRoute: ApiRupantorCreateRoute,
   ApiPublicCronLikesRoute: ApiPublicCronLikesRoute,
+  ApiPublicRupantorCallbackRoute: ApiPublicRupantorCallbackRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
