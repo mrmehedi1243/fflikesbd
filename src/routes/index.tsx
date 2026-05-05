@@ -1,9 +1,9 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/lib/auth";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { getLandingData } from "@/server/landing.functions";
 import {
   Flame, ShoppingCart, Settings as SettingsIcon, User as UserIcon,
   ShieldCheck, Rocket, Headphones, Heart, Eye, KeyRound,
@@ -56,12 +56,9 @@ function Landing() {
 
   useEffect(() => {
     (async () => {
-      const [{ data: p }, { data: pn }] = await Promise.all([
-        supabase.from("packages").select("id,name,description,price_bdt,type,image_url").eq("is_active", true).order("sort_order"),
-        supabase.from("panel_packages").select("id,name,description,price_bdt,video_url,image_url,apk_link,duration_label").eq("is_active", true).order("sort_order"),
-      ]);
-      setPkgs((p ?? []) as Pkg[]);
-      setPanels((pn ?? []) as Panel[]);
+      const data = await getLandingData();
+      setPkgs(data.packages as Pkg[]);
+      setPanels(data.panels as Panel[]);
     })();
   }, []);
 
