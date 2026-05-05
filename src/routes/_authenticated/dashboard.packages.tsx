@@ -40,7 +40,6 @@ type Settings = {
   bkash_number: string;
   bkash_number_visit: string;
   payment_instructions: string;
-  rupantor_enabled?: boolean;
 };
 
 function PackagesPage() {
@@ -57,7 +56,6 @@ function PackagesPage() {
   const [file, setFile] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [payingOnline, setPayingOnline] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -116,28 +114,6 @@ function PackagesPage() {
       toast.error(e.message || "Order failed");
     } finally {
       setBusy(false);
-    }
-  }
-
-  async function payOnline() {
-    if (!user || !selected) return;
-    if (!/^\d{6,}$/.test(uid)) return toast.error("Valid Free Fire UID din");
-    setPayingOnline(true);
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const token = session?.access_token;
-      if (!token) throw new Error("Login again");
-      const r = await fetch("/api/rupantor-create", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ package_id: selected.id, ff_uid: uid.trim() }),
-      });
-      const data = await r.json();
-      if (!r.ok || !data.payment_url) throw new Error(data.error || "Payment failed");
-      window.location.href = data.payment_url;
-    } catch (e: any) {
-      toast.error(e.message || "Payment failed");
-      setPayingOnline(false);
     }
   }
 
@@ -304,25 +280,6 @@ function PackagesPage() {
             <Button disabled={busy} onClick={submit} className="w-full bg-gradient-primary text-primary-foreground hover:opacity-90 font-semibold">
               {busy ? <Loader2 className="w-4 h-4 animate-spin"/> : `Submit Order • ৳${Number(selected?.price_bdt)}`}
             </Button>
-
-            {isVisit && settings?.rupantor_enabled && (
-              <>
-                <div className="relative my-1">
-                  <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-border" /></div>
-                  <div className="relative flex justify-center text-[10px] uppercase tracking-widest">
-                    <span className="bg-card px-2 text-muted-foreground">Or instant</span>
-                  </div>
-                </div>
-                <Button
-                  disabled={payingOnline || !/^\d{6,}$/.test(uid)}
-                  onClick={payOnline}
-                  className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white hover:opacity-90 font-semibold"
-                >
-                  {payingOnline ? <Loader2 className="w-4 h-4 animate-spin"/> : `Pay Online (RupantorPay) • ৳${Number(selected?.price_bdt)}`}
-                </Button>
-                <p className="text-[10px] text-muted-foreground text-center">UID din, then click — bKash/Nagad/Card e instant pay, auto-approve.</p>
-              </>
-            )}
           </div>
         </DialogContent>
       </Dialog>

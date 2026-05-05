@@ -6,8 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, Zap } from "lucide-react";
-import { Switch } from "@/components/ui/switch";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/admin/settings")({
@@ -22,7 +21,6 @@ type S = {
   bkash_number_visit: string;
   payment_instructions: string;
   admin_telegram: string;
-  rupantor_enabled: boolean;
 };
 
 function AdminSettings() {
@@ -48,18 +46,6 @@ function AdminSettings() {
     <div className="space-y-5 max-w-2xl mx-auto">
       <h1 className="font-display font-bold text-2xl">Settings</h1>
       <Card className="bg-gradient-card border-border p-5 space-y-4">
-        <div className="flex items-center justify-between rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-3">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-md bg-gradient-to-br from-emerald-500 to-teal-500 grid place-items-center">
-              <Zap className="w-4 h-4 text-white" />
-            </div>
-            <div>
-              <div className="font-semibold text-sm">RupantorPay (Auto Pay)</div>
-              <div className="text-[11px] text-muted-foreground">Enable korle visit packages e instant online payment button dekhabe</div>
-            </div>
-          </div>
-          <Switch checked={!!s.rupantor_enabled} onCheckedChange={(v) => setS({ ...s, rupantor_enabled: v })} />
-        </div>
         <div>
           <Label>Banner API URL <span className="text-xs text-muted-foreground">(use {"{uid}"} placeholder)</span></Label>
           <Input value={s.banner_api_url} onChange={(e) => setS({ ...s, banner_api_url: e.target.value })} />
