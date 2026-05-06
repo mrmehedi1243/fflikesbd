@@ -210,12 +210,6 @@ function HeroCarousel({ slides }: { slides: { id: string; title: string; image: 
     return () => clearInterval(t);
   }, [slides.length]);
   const s = slides[idx];
-  const Wrapper = ({ children }: { children: React.ReactNode }) =>
-    s.link ? (
-      <a href={s.link} target="_blank" rel="noopener noreferrer" className="absolute inset-0 z-10" aria-label={s.title || "slide link"}>
-        {children}
-      </a>
-    ) : (<>{children}</>);
   return (
     <div className="relative aspect-[16/9] sm:aspect-[21/9] rounded-2xl overflow-hidden border border-border bg-gradient-card shadow-card">
       {s.video ? (
@@ -226,7 +220,9 @@ function HeroCarousel({ slides }: { slides: { id: string; title: string; image: 
         <div className="absolute inset-0 bg-gradient-primary opacity-80" />
       )}
       <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
-      {s.link && <Wrapper><span /></Wrapper>}
+      {s.link && (
+        <a href={s.link} target="_blank" rel="noopener noreferrer" className="absolute inset-0 z-10" aria-label={s.title || "slide link"} />
+      )}
       <div className="absolute inset-x-0 bottom-0 p-4 sm:p-6">
         <div className="font-display font-extrabold text-lg sm:text-2xl text-gradient">{s.title}</div>
         <Link to="/auth">
