@@ -41,12 +41,15 @@ type Panel = {
   apk_link: string | null;
   duration_label: string | null;
 };
+type Slide = { id: string; image_url: string; link_url: string | null; title: string | null };
 
 function Landing() {
   const { user, isAdmin, loading } = useAuth();
   const navigate = useNavigate();
   const [pkgs, setPkgs] = useState<Pkg[]>([]);
   const [panels, setPanels] = useState<Panel[]>([]);
+  const [adminSlides, setAdminSlides] = useState<Slide[]>([]);
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (!loading && user) {
@@ -59,20 +62,21 @@ function Landing() {
       const data = await getLandingData();
       setPkgs(data.packages as Pkg[]);
       setPanels(data.panels as Panel[]);
+      setAdminSlides(((data as any).slides ?? []) as Slide[]);
+      setLogoUrl(((data as any).logoUrl ?? null) as string | null);
     })();
   }, []);
 
   const likes = pkgs.filter((p) => p.type === "like");
   const visits = pkgs.filter((p) => p.type === "visit");
 
-  // Hero carousel slides — built from real panels (fallback static)
-  const slides = panels.slice(0, 5).map((p) => ({
-    id: p.id,
-    title: p.name,
-    image: p.image_url,
-    video: p.video_url,
-  }));
-  const heroSlides = slides.length > 0 ? slides : [{ id: "fallback", title: "Free Fire APKMOD & Panels", image: null, video: null }];
+  // Hero carousel slides — admin slides first, fallback to panels, then static
+  const heroSlides =
+    adminSlides.length > 0
+      ? adminSlides.map((s) => ({ id: s.id, title: s.title ?? "", image: s.image_url, video: null as string | null, link: s.link_url }))
+      : panels.length > 0
+        ? panels.slice(0, 5).map((p) => ({ id: p.id, title: p.name, image: p.image_url, video: p.video_url, link: null as string | null }))
+        : [{ id: "fallback", title: "Free Fire APKMOD & Panels", image: null as string | null, video: null as string | null, link: null as string | null }];
 
   return (
     <div className="min-h-screen">
@@ -80,7 +84,7 @@ function Landing() {
       <header className="sticky top-0 z-40 border-b border-border bg-card/70 backdrop-blur-xl">
         <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2.5 min-w-0">
-            <img src={gsLogo} alt="GS STORE" className="w-9 h-9 rounded-lg object-cover ring-1 ring-primary/40" />
+            <img src={logoUrl || gsLogo} alt="GS STORE" className="w-9 h-9 rounded-lg object-cover ring-1 ring-primary/40" />
             <div className="font-display font-bold text-base sm:text-lg truncate">GS STORE</div>
           </Link>
           <div className="flex items-center gap-2">
@@ -197,7 +201,7 @@ function Landing() {
   );
 }
 
-function HeroCarousel({ slides }: { slides: { id: string; title: string; image: string | null; video: string | null }[] }) {
+function HeroCarousel({ slides }: { slides: { id: string; title: string; image: string | null; video: string | null; link?: string | null }[] }) {
   const [idx, setIdx] = useState(0);
   const [muted, setMuted] = useState(true);
   useEffect(() => {
@@ -206,6 +210,12 @@ function HeroCarousel({ slides }: { slides: { id: string; title: string; image: 
     return () => clearInterval(t);
   }, [slides.length]);
   const s = slides[idx];
+  const Wrapper = ({ children }: { children: React.ReactNode }) =>
+    s.link ? (
+      <a href={s.link} target="_blank" rel="noopener noreferrer" className="absolute inset-0 z-10" aria-label={s.title || "slide link"}>
+        {children}
+      </a>
+    ) : (<>{children}</>);
   return (
     <div className="relative aspect-[16/9] sm:aspect-[21/9] rounded-2xl overflow-hidden border border-border bg-gradient-card shadow-card">
       {s.video ? (
@@ -216,6 +226,7 @@ function HeroCarousel({ slides }: { slides: { id: string; title: string; image: 
         <div className="absolute inset-0 bg-gradient-primary opacity-80" />
       )}
       <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
+      {s.link && <Wrapper><span /></Wrapper>}
       <div className="absolute inset-x-0 bottom-0 p-4 sm:p-6">
         <div className="font-display font-extrabold text-lg sm:text-2xl text-gradient">{s.title}</div>
         <Link to="/auth">
