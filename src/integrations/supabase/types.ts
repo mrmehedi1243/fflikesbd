@@ -20,8 +20,12 @@ export type Database = {
           banner_api_url: string
           bkash_number: string
           bkash_number_visit: string
+          coupon_price_like: number
+          coupon_price_panel: number
+          coupon_price_visit: number
           id: number
           like_api_url: string
+          logo_url: string | null
           payment_instructions: string
           rupantor_enabled: boolean
           updated_at: string
@@ -32,8 +36,12 @@ export type Database = {
           banner_api_url: string
           bkash_number: string
           bkash_number_visit?: string
+          coupon_price_like?: number
+          coupon_price_panel?: number
+          coupon_price_visit?: number
           id?: number
           like_api_url: string
+          logo_url?: string | null
           payment_instructions: string
           rupantor_enabled?: boolean
           updated_at?: string
@@ -44,8 +52,12 @@ export type Database = {
           banner_api_url?: string
           bkash_number?: string
           bkash_number_visit?: string
+          coupon_price_like?: number
+          coupon_price_panel?: number
+          coupon_price_visit?: number
           id?: number
           like_api_url?: string
+          logo_url?: string | null
           payment_instructions?: string
           rupantor_enabled?: boolean
           updated_at?: string
@@ -85,6 +97,117 @@ export type Database = {
           name?: string
           sort_order?: number
           type?: Database["public"]["Enums"]["package_type"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      coupon_orders: {
+        Row: {
+          approved_at: string | null
+          created_at: string
+          delivered_at: string | null
+          delivered_code: string | null
+          id: string
+          payment_screenshot_url: string | null
+          price_bdt: number
+          rejection_reason: string | null
+          status: Database["public"]["Enums"]["coupon_order_status"]
+          trx_id: string
+          type: Database["public"]["Enums"]["coupon_type"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          approved_at?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          delivered_code?: string | null
+          id?: string
+          payment_screenshot_url?: string | null
+          price_bdt: number
+          rejection_reason?: string | null
+          status?: Database["public"]["Enums"]["coupon_order_status"]
+          trx_id: string
+          type: Database["public"]["Enums"]["coupon_type"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          approved_at?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          delivered_code?: string | null
+          id?: string
+          payment_screenshot_url?: string | null
+          price_bdt?: number
+          rejection_reason?: string | null
+          status?: Database["public"]["Enums"]["coupon_order_status"]
+          trx_id?: string
+          type?: Database["public"]["Enums"]["coupon_type"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      coupons: {
+        Row: {
+          assigned_at: string | null
+          assigned_order_id: string | null
+          code: string
+          created_at: string
+          id: string
+          is_used: boolean
+          type: Database["public"]["Enums"]["coupon_type"]
+        }
+        Insert: {
+          assigned_at?: string | null
+          assigned_order_id?: string | null
+          code: string
+          created_at?: string
+          id?: string
+          is_used?: boolean
+          type: Database["public"]["Enums"]["coupon_type"]
+        }
+        Update: {
+          assigned_at?: string | null
+          assigned_order_id?: string | null
+          code?: string
+          created_at?: string
+          id?: string
+          is_used?: boolean
+          type?: Database["public"]["Enums"]["coupon_type"]
+        }
+        Relationships: []
+      }
+      hero_slides: {
+        Row: {
+          created_at: string
+          id: string
+          image_url: string
+          is_active: boolean
+          link_url: string | null
+          sort_order: number
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          image_url: string
+          is_active?: boolean
+          link_url?: string | null
+          sort_order?: number
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          image_url?: string
+          is_active?: boolean
+          link_url?: string | null
+          sort_order?: number
+          title?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -503,6 +626,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      approve_coupon_order: {
+        Args: { _manual_code?: string; _order_id: string }
+        Returns: {
+          code_value: string
+          message: string
+          success: boolean
+        }[]
+      }
       approve_panel_order: {
         Args: { _manual_key?: string; _order_id: string }
         Returns: {
@@ -521,6 +652,8 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "user"
+      coupon_order_status: "pending" | "delivered" | "rejected"
+      coupon_type: "like" | "visit" | "panel"
       order_status: "pending" | "approved" | "rejected" | "completed"
       package_type: "like" | "visit"
       panel_order_status: "pending" | "approved" | "rejected" | "delivered"
@@ -652,6 +785,8 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "user"],
+      coupon_order_status: ["pending", "delivered", "rejected"],
+      coupon_type: ["like", "visit", "panel"],
       order_status: ["pending", "approved", "rejected", "completed"],
       package_type: ["like", "visit"],
       panel_order_status: ["pending", "approved", "rejected", "delivered"],
