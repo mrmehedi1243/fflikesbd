@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
-import { Flame, LayoutDashboard, Package as Pkg, ShoppingCart, Settings, LogOut, ShieldCheck, Inbox, FolderTree, Eye, UserCircle2, KeyRound } from "lucide-react";
+import { Flame, LayoutDashboard, Package as Pkg, ShoppingCart, Settings, LogOut, ShieldCheck, Inbox, FolderTree, Eye, UserCircle2, KeyRound, Image as ImageIcon, Ticket } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import type { ReactNode } from "react";
@@ -13,14 +13,17 @@ export function AppShell({ children, admin = false }: { children: ReactNode; adm
     { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { to: "/dashboard/packages", label: "Packages", icon: Pkg },
     { to: "/dashboard/panels", label: "Panels", icon: KeyRound },
+    { to: "/dashboard/coupons", label: "Coupons", icon: Ticket },
     { to: "/dashboard/orders", label: "My Orders", icon: ShoppingCart },
     { to: "/dashboard/profile", label: "Profile", icon: UserCircle2 },
   ];
   const adminNav = [
     { to: "/admin", label: "Dashboard", icon: LayoutDashboard },
+    { to: "/admin/slider", label: "Slider", icon: ImageIcon },
     { to: "/admin/orders", label: "Likes", icon: Inbox },
     { to: "/admin/visit-orders", label: "Visits", icon: Eye },
     { to: "/admin/panels", label: "Panels", icon: KeyRound },
+    { to: "/admin/coupons", label: "Coupons", icon: Ticket },
     { to: "/admin/categories", label: "Categories", icon: FolderTree },
     { to: "/admin/packages", label: "Packages", icon: Pkg },
     { to: "/admin/settings", label: "Settings", icon: Settings },
