@@ -23,6 +23,7 @@ import { Route as AuthenticatedDashboardPanelsRouteImport } from './routes/_auth
 import { Route as AuthenticatedDashboardPackagesRouteImport } from './routes/_authenticated/dashboard.packages'
 import { Route as AuthenticatedDashboardOrdersRouteImport } from './routes/_authenticated/dashboard.orders'
 import { Route as AuthenticatedAdminVisitOrdersRouteImport } from './routes/_authenticated/admin.visit-orders'
+import { Route as AuthenticatedAdminSliderRouteImport } from './routes/_authenticated/admin.slider'
 import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authenticated/admin.settings'
 import { Route as AuthenticatedAdminPanelsRouteImport } from './routes/_authenticated/admin.panels'
 import { Route as AuthenticatedAdminPackagesRouteImport } from './routes/_authenticated/admin.packages'
@@ -104,6 +105,12 @@ const AuthenticatedAdminVisitOrdersRoute =
     path: '/visit-orders',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminSliderRoute =
+  AuthenticatedAdminSliderRouteImport.update({
+    id: '/slider',
+    path: '/slider',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminSettingsRoute =
   AuthenticatedAdminSettingsRouteImport.update({
     id: '/settings',
@@ -146,6 +153,7 @@ export interface FileRoutesByFullPath {
   '/admin/packages': typeof AuthenticatedAdminPackagesRoute
   '/admin/panels': typeof AuthenticatedAdminPanelsRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
+  '/admin/slider': typeof AuthenticatedAdminSliderRoute
   '/admin/visit-orders': typeof AuthenticatedAdminVisitOrdersRoute
   '/dashboard/orders': typeof AuthenticatedDashboardOrdersRoute
   '/dashboard/packages': typeof AuthenticatedDashboardPackagesRoute
@@ -164,6 +172,7 @@ export interface FileRoutesByTo {
   '/admin/packages': typeof AuthenticatedAdminPackagesRoute
   '/admin/panels': typeof AuthenticatedAdminPanelsRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
+  '/admin/slider': typeof AuthenticatedAdminSliderRoute
   '/admin/visit-orders': typeof AuthenticatedAdminVisitOrdersRoute
   '/dashboard/orders': typeof AuthenticatedDashboardOrdersRoute
   '/dashboard/packages': typeof AuthenticatedDashboardPackagesRoute
@@ -186,6 +195,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/packages': typeof AuthenticatedAdminPackagesRoute
   '/_authenticated/admin/panels': typeof AuthenticatedAdminPanelsRoute
   '/_authenticated/admin/settings': typeof AuthenticatedAdminSettingsRoute
+  '/_authenticated/admin/slider': typeof AuthenticatedAdminSliderRoute
   '/_authenticated/admin/visit-orders': typeof AuthenticatedAdminVisitOrdersRoute
   '/_authenticated/dashboard/orders': typeof AuthenticatedDashboardOrdersRoute
   '/_authenticated/dashboard/packages': typeof AuthenticatedDashboardPackagesRoute
@@ -208,6 +218,7 @@ export interface FileRouteTypes {
     | '/admin/packages'
     | '/admin/panels'
     | '/admin/settings'
+    | '/admin/slider'
     | '/admin/visit-orders'
     | '/dashboard/orders'
     | '/dashboard/packages'
@@ -226,6 +237,7 @@ export interface FileRouteTypes {
     | '/admin/packages'
     | '/admin/panels'
     | '/admin/settings'
+    | '/admin/slider'
     | '/admin/visit-orders'
     | '/dashboard/orders'
     | '/dashboard/packages'
@@ -247,6 +259,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/packages'
     | '/_authenticated/admin/panels'
     | '/_authenticated/admin/settings'
+    | '/_authenticated/admin/slider'
     | '/_authenticated/admin/visit-orders'
     | '/_authenticated/dashboard/orders'
     | '/_authenticated/dashboard/packages'
@@ -365,6 +378,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminVisitOrdersRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/slider': {
+      id: '/_authenticated/admin/slider'
+      path: '/slider'
+      fullPath: '/admin/slider'
+      preLoaderRoute: typeof AuthenticatedAdminSliderRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/settings': {
       id: '/_authenticated/admin/settings'
       path: '/settings'
@@ -409,6 +429,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminPackagesRoute: typeof AuthenticatedAdminPackagesRoute
   AuthenticatedAdminPanelsRoute: typeof AuthenticatedAdminPanelsRoute
   AuthenticatedAdminSettingsRoute: typeof AuthenticatedAdminSettingsRoute
+  AuthenticatedAdminSliderRoute: typeof AuthenticatedAdminSliderRoute
   AuthenticatedAdminVisitOrdersRoute: typeof AuthenticatedAdminVisitOrdersRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
 }
@@ -419,6 +440,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminPackagesRoute: AuthenticatedAdminPackagesRoute,
   AuthenticatedAdminPanelsRoute: AuthenticatedAdminPanelsRoute,
   AuthenticatedAdminSettingsRoute: AuthenticatedAdminSettingsRoute,
+  AuthenticatedAdminSliderRoute: AuthenticatedAdminSliderRoute,
   AuthenticatedAdminVisitOrdersRoute: AuthenticatedAdminVisitOrdersRoute,
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
 }
