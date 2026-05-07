@@ -342,6 +342,72 @@ function PackageCard({ pkg }: { pkg: Pkg }) {
   );
 }
 
+function PanelsByCategory({ panels, categories }: { panels: Panel[]; categories: PanelCat[] }) {
+  const grouped = categories
+    .map((c) => ({ cat: c, items: panels.filter((p) => p.panel_category_id === c.id) }))
+    .filter((g) => g.items.length > 0);
+  const uncategorized = panels.filter((p) => !p.panel_category_id);
+  return (
+    <ProductSection title="PANELS" icon={KeyRound}>
+      {grouped.map((g) => (
+        <div key={g.cat.id} className="col-span-2 lg:col-span-3">
+          <div className="text-xs font-display font-bold tracking-widest text-primary mb-2 mt-1">{g.cat.name.toUpperCase()}</div>
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+            {g.items.map((p) => <PanelCard key={p.id} panel={p} />)}
+          </div>
+        </div>
+      ))}
+      {uncategorized.length > 0 && (
+        <div className="col-span-2 lg:col-span-3">
+          {grouped.length > 0 && <div className="text-xs font-display font-bold tracking-widest text-muted-foreground mb-2 mt-1">OTHERS</div>}
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+            {uncategorized.map((p) => <PanelCard key={p.id} panel={p} />)}
+          </div>
+        </div>
+      )}
+    </ProductSection>
+  );
+}
+
+function GuildPkgCard({ pkg }: { pkg: GuildPkg }) {
+  return (
+    <Card className="bg-gradient-card border-border overflow-hidden shadow-card flex flex-col">
+      <div className="px-3 py-2.5 flex items-center gap-2 border-b border-border/60">
+        <div className="w-7 h-7 rounded-md bg-primary/15 grid place-items-center">
+          <Users className="w-4 h-4 text-primary" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="font-display font-bold text-xs sm:text-sm truncate">{pkg.name}</div>
+          <div className="text-[10px] text-success flex items-center gap-1"><BadgeCheck className="w-3 h-3" /> {pkg.bot_count} bot{pkg.bot_count > 1 ? "s" : ""}</div>
+        </div>
+      </div>
+      <div className="aspect-video bg-secondary/30 overflow-hidden">
+        {pkg.image_url ? (
+          <img src={pkg.image_url} alt={pkg.name} className="w-full h-full object-cover" />
+        ) : (
+          <div className="w-full h-full grid place-items-center bg-gradient-primary/10">
+            <Users className="w-10 h-10 text-primary/60" />
+          </div>
+        )}
+      </div>
+      <div className="p-3 flex-1 flex flex-col gap-2">
+        {pkg.description && <div className="text-[11px] text-muted-foreground line-clamp-2">{pkg.description}</div>}
+        {pkg.duration_label && <div className="text-[10px] text-muted-foreground">⏱ {pkg.duration_label}</div>}
+        <div className="mt-auto">
+          <div className="flex items-center gap-1 text-success font-bold text-sm mb-2">
+            <Tag className="w-4 h-4" /> ৳{Number(pkg.price_bdt)}
+          </div>
+          <Link to="/auth">
+            <Button size="sm" className="w-full bg-gradient-primary text-primary-foreground font-semibold">
+              <ShoppingCart className="w-3.5 h-3.5 mr-1" /> Buy
+            </Button>
+          </Link>
+        </div>
+      </div>
+    </Card>
+  );
+}
+
 function PanelCard({ panel }: { panel: Panel }) {
   const ref = useRef<HTMLVideoElement>(null);
   const [muted, setMuted] = useState(true);
