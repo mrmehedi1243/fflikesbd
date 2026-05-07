@@ -19,6 +19,7 @@ export type Database = {
           admin_telegram: string
           banner_api_url: string
           bkash_number: string
+          bkash_number_guild: string
           bkash_number_visit: string
           coupon_price_like: number
           coupon_price_panel: number
@@ -35,6 +36,7 @@ export type Database = {
           admin_telegram?: string
           banner_api_url: string
           bkash_number: string
+          bkash_number_guild?: string
           bkash_number_visit?: string
           coupon_price_like?: number
           coupon_price_panel?: number
@@ -51,6 +53,7 @@ export type Database = {
           admin_telegram?: string
           banner_api_url?: string
           bkash_number?: string
+          bkash_number_guild?: string
           bkash_number_visit?: string
           coupon_price_like?: number
           coupon_price_panel?: number
@@ -176,6 +179,110 @@ export type Database = {
           id?: string
           is_used?: boolean
           type?: Database["public"]["Enums"]["coupon_type"]
+        }
+        Relationships: []
+      }
+      guild_orders: {
+        Row: {
+          admin_note: string | null
+          approved_at: string | null
+          created_at: string
+          expires_at: string | null
+          guild_id: string
+          guild_package_id: string
+          id: string
+          last_synced_at: string | null
+          last_synced_guild: Json | null
+          payment_screenshot_url: string | null
+          rejection_reason: string | null
+          status: Database["public"]["Enums"]["guild_order_status"]
+          trx_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_note?: string | null
+          approved_at?: string | null
+          created_at?: string
+          expires_at?: string | null
+          guild_id: string
+          guild_package_id: string
+          id?: string
+          last_synced_at?: string | null
+          last_synced_guild?: Json | null
+          payment_screenshot_url?: string | null
+          rejection_reason?: string | null
+          status?: Database["public"]["Enums"]["guild_order_status"]
+          trx_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_note?: string | null
+          approved_at?: string | null
+          created_at?: string
+          expires_at?: string | null
+          guild_id?: string
+          guild_package_id?: string
+          id?: string
+          last_synced_at?: string | null
+          last_synced_guild?: Json | null
+          payment_screenshot_url?: string | null
+          rejection_reason?: string | null
+          status?: Database["public"]["Enums"]["guild_order_status"]
+          trx_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guild_orders_guild_package_id_fkey"
+            columns: ["guild_package_id"]
+            isOneToOne: false
+            referencedRelation: "guild_packages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guild_packages: {
+        Row: {
+          bot_count: number
+          created_at: string
+          description: string | null
+          duration_label: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean
+          name: string
+          price_bdt: number
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          bot_count?: number
+          created_at?: string
+          description?: string | null
+          duration_label?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          name: string
+          price_bdt: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          bot_count?: number
+          created_at?: string
+          description?: string | null
+          duration_label?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          name?: string
+          price_bdt?: number
+          sort_order?: number
+          updated_at?: string
         }
         Relationships: []
       }
@@ -398,6 +505,30 @@ export type Database = {
           },
         ]
       }
+      panel_categories: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
       panel_keys: {
         Row: {
           assigned_at: string | null
@@ -505,6 +636,7 @@ export type Database = {
           image_url: string | null
           is_active: boolean
           name: string
+          panel_category_id: string | null
           price_bdt: number
           sort_order: number
           updated_at: string
@@ -519,6 +651,7 @@ export type Database = {
           image_url?: string | null
           is_active?: boolean
           name: string
+          panel_category_id?: string | null
           price_bdt: number
           sort_order?: number
           updated_at?: string
@@ -533,12 +666,21 @@ export type Database = {
           image_url?: string | null
           is_active?: boolean
           name?: string
+          panel_category_id?: string | null
           price_bdt?: number
           sort_order?: number
           updated_at?: string
           video_url?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "panel_packages_panel_category_id_fkey"
+            columns: ["panel_category_id"]
+            isOneToOne: false
+            referencedRelation: "panel_categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -654,6 +796,12 @@ export type Database = {
       app_role: "admin" | "user"
       coupon_order_status: "pending" | "delivered" | "rejected"
       coupon_type: "like" | "visit" | "panel"
+      guild_order_status:
+        | "pending"
+        | "approved"
+        | "rejected"
+        | "running"
+        | "expired"
       order_status: "pending" | "approved" | "rejected" | "completed"
       package_type: "like" | "visit"
       panel_order_status: "pending" | "approved" | "rejected" | "delivered"
@@ -787,6 +935,13 @@ export const Constants = {
       app_role: ["admin", "user"],
       coupon_order_status: ["pending", "delivered", "rejected"],
       coupon_type: ["like", "visit", "panel"],
+      guild_order_status: [
+        "pending",
+        "approved",
+        "rejected",
+        "running",
+        "expired",
+      ],
       order_status: ["pending", "approved", "rejected", "completed"],
       package_type: ["like", "visit"],
       panel_order_status: ["pending", "approved", "rejected", "delivered"],
