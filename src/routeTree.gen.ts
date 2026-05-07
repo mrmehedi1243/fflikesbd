@@ -30,6 +30,7 @@ import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authen
 import { Route as AuthenticatedAdminPanelsRouteImport } from './routes/_authenticated/admin.panels'
 import { Route as AuthenticatedAdminPackagesRouteImport } from './routes/_authenticated/admin.packages'
 import { Route as AuthenticatedAdminOrdersRouteImport } from './routes/_authenticated/admin.orders'
+import { Route as AuthenticatedAdminGuildRouteImport } from './routes/_authenticated/admin.guild'
 import { Route as AuthenticatedAdminCouponsRouteImport } from './routes/_authenticated/admin.coupons'
 import { Route as AuthenticatedAdminCategoriesRouteImport } from './routes/_authenticated/admin.categories'
 
@@ -150,6 +151,11 @@ const AuthenticatedAdminOrdersRoute =
     path: '/orders',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminGuildRoute = AuthenticatedAdminGuildRouteImport.update({
+  id: '/guild',
+  path: '/guild',
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
 const AuthenticatedAdminCouponsRoute =
   AuthenticatedAdminCouponsRouteImport.update({
     id: '/coupons',
@@ -171,6 +177,7 @@ export interface FileRoutesByFullPath {
   '/api/dispatch': typeof ApiDispatchRoute
   '/admin/categories': typeof AuthenticatedAdminCategoriesRoute
   '/admin/coupons': typeof AuthenticatedAdminCouponsRoute
+  '/admin/guild': typeof AuthenticatedAdminGuildRoute
   '/admin/orders': typeof AuthenticatedAdminOrdersRoute
   '/admin/packages': typeof AuthenticatedAdminPackagesRoute
   '/admin/panels': typeof AuthenticatedAdminPanelsRoute
@@ -193,6 +200,7 @@ export interface FileRoutesByTo {
   '/api/dispatch': typeof ApiDispatchRoute
   '/admin/categories': typeof AuthenticatedAdminCategoriesRoute
   '/admin/coupons': typeof AuthenticatedAdminCouponsRoute
+  '/admin/guild': typeof AuthenticatedAdminGuildRoute
   '/admin/orders': typeof AuthenticatedAdminOrdersRoute
   '/admin/packages': typeof AuthenticatedAdminPackagesRoute
   '/admin/panels': typeof AuthenticatedAdminPanelsRoute
@@ -219,6 +227,7 @@ export interface FileRoutesById {
   '/api/dispatch': typeof ApiDispatchRoute
   '/_authenticated/admin/categories': typeof AuthenticatedAdminCategoriesRoute
   '/_authenticated/admin/coupons': typeof AuthenticatedAdminCouponsRoute
+  '/_authenticated/admin/guild': typeof AuthenticatedAdminGuildRoute
   '/_authenticated/admin/orders': typeof AuthenticatedAdminOrdersRoute
   '/_authenticated/admin/packages': typeof AuthenticatedAdminPackagesRoute
   '/_authenticated/admin/panels': typeof AuthenticatedAdminPanelsRoute
@@ -245,6 +254,7 @@ export interface FileRouteTypes {
     | '/api/dispatch'
     | '/admin/categories'
     | '/admin/coupons'
+    | '/admin/guild'
     | '/admin/orders'
     | '/admin/packages'
     | '/admin/panels'
@@ -267,6 +277,7 @@ export interface FileRouteTypes {
     | '/api/dispatch'
     | '/admin/categories'
     | '/admin/coupons'
+    | '/admin/guild'
     | '/admin/orders'
     | '/admin/packages'
     | '/admin/panels'
@@ -292,6 +303,7 @@ export interface FileRouteTypes {
     | '/api/dispatch'
     | '/_authenticated/admin/categories'
     | '/_authenticated/admin/coupons'
+    | '/_authenticated/admin/guild'
     | '/_authenticated/admin/orders'
     | '/_authenticated/admin/packages'
     | '/_authenticated/admin/panels'
@@ -466,6 +478,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminOrdersRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/guild': {
+      id: '/_authenticated/admin/guild'
+      path: '/guild'
+      fullPath: '/admin/guild'
+      preLoaderRoute: typeof AuthenticatedAdminGuildRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/coupons': {
       id: '/_authenticated/admin/coupons'
       path: '/coupons'
@@ -486,6 +505,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminCategoriesRoute: typeof AuthenticatedAdminCategoriesRoute
   AuthenticatedAdminCouponsRoute: typeof AuthenticatedAdminCouponsRoute
+  AuthenticatedAdminGuildRoute: typeof AuthenticatedAdminGuildRoute
   AuthenticatedAdminOrdersRoute: typeof AuthenticatedAdminOrdersRoute
   AuthenticatedAdminPackagesRoute: typeof AuthenticatedAdminPackagesRoute
   AuthenticatedAdminPanelsRoute: typeof AuthenticatedAdminPanelsRoute
@@ -498,6 +518,7 @@ interface AuthenticatedAdminRouteChildren {
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminCategoriesRoute: AuthenticatedAdminCategoriesRoute,
   AuthenticatedAdminCouponsRoute: AuthenticatedAdminCouponsRoute,
+  AuthenticatedAdminGuildRoute: AuthenticatedAdminGuildRoute,
   AuthenticatedAdminOrdersRoute: AuthenticatedAdminOrdersRoute,
   AuthenticatedAdminPackagesRoute: AuthenticatedAdminPackagesRoute,
   AuthenticatedAdminPanelsRoute: AuthenticatedAdminPanelsRoute,
