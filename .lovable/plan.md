@@ -1,53 +1,52 @@
-## Scope (only adds, kichu ager jinish change hobe na)
+## Scope
 
-### 1. Hero Slider (admin manage)
-- New table `hero_slides`: `image_url`, `link_url` (optional), `title` (optional), `sort_order`, `is_active`
-- Storage path under existing public bucket `package-images` → `slides/`
-- Admin route: `/admin/slider` — list, add, edit, delete, toggle active, upload image, set link
-- Landing `HeroCarousel`: slides ekhon `hero_slides` theke ashbe (panel fallback rakhi). Image click → `link_url`
-- `getLandingData()` server function update kore slides return
-
-### 2. Logo upload (admin)
-- `app_settings.logo_url` column add
-- Admin Settings page e logo upload field add
-- AppShell ar Landing header e DB logo show korbe (fallback: existing `gs-logo.jpg`)
-- Public landing er jonno `getLandingData()` te logo url return
-
-### 3. Category icon image
-- `categories` table e already `image_url` ase — no change. Landing page e category list e icon show korbo (jodi visible kora chao). For now eta skip kortei pari karon landing e currently category section nai. Confirm ki landing e category cards add korte hobe?
-
-### 4. Coupon system (per type: like / visit / panel)
-Panel keys-er moto generic "coupon/code" delivery system:
-- New table `coupons`: `type` (like/visit/panel), `code`, `is_used`, `assigned_order_id`, `category_id` (optional, niche scope korar jonno)
-- New table `coupon_orders`: user order for a coupon — `user_id`, `type`, `category_id`, `trx_id`, `payment_screenshot_url`, `status` (pending/delivered/rejected), `delivered_code`, `price_bdt`
-- Admin theke:
-  - Bulk add coupons (per type, optionally per category)
-  - View coupon orders, approve (auto-pull from stock or paste manual code), reject
-  - On/off toggle per coupon stock
-- User dashboard e ek ta "Coupons" tab — type select, request submit, payment screenshot, then admin approve hole code dekhabe
-- Per type pricing: `app_settings` te `coupon_price_like`, `coupon_price_visit`, `coupon_price_panel` rakhi (or per-coupon?); ami simple `app_settings` route niye jachhi
-
-### Files
-- New migration: hero_slides, coupons, coupon_orders, app_settings columns
-- `src/server/landing.server.ts` — slides + logo return
-- `src/routes/index.tsx` — DB slides + DB logo
-- `src/components/AppShell.tsx` — DB logo (optional)
-- `src/routes/_authenticated/admin.slider.tsx` — NEW
-- `src/routes/_authenticated/admin.coupons.tsx` — NEW (packages + key stock + orders, panel.tsx er moto)
-- `src/routes/_authenticated/dashboard.coupons.tsx` — NEW user-facing
-- `src/routes/_authenticated/admin.settings.tsx` — logo upload + coupon prices
-- AppShell admin nav e Slider + Coupons add
-
-### Out of scope (change korbo na)
-- Likes/Visits API flow, bKash payment, panel key flow, RupantorPay (already removed)
-- Existing admin Categories/Packages/Panels pages
-- Existing user dashboard.packages / panels flows
+1. **Guild Bots** — new product category (alongside Likes / Visits / Panels).
+2. **Home page** — mirror landing design (slider + product sections), black + blue theme.
+3. **Drop panel KEY system** — keep panel APK + sub-categories (Root / Non-Root).
+4. Bot instance card like the screenshot (logo, guild name, ID, members, leader, glory) — data scraped from `https://danger-guild-management-web.vercel.app/guild?guild_id=X&region=bd`.
 
 ---
 
-**Confirm plz:**
-1. Coupon per category-o filter chao naki shudhu per type (like/visit/panel)?
-2. Coupon er price ki fixed (admin settings e), naki per coupon batch e admin price set korbe?
-3. Landing e ki category tile section add korbo, ar admin theke category icon edit korle oikhane dekhabe?
+## Database changes
 
-Approve korle ami sob ek shathe baniye debo.
+- New table `guild_packages` (id, name, description, price_bdt, image_url, category `root|non_root`, duration_label, sort_order, is_active).
+- New table `guild_orders` (id, user_id, guild_package_id, guild_id, trx_id, payment_screenshot_url, status `pending|approved|rejected|running|expired`, admin_note, approved_at, expires_at, last_synced_guild jsonb).
+- New table `panel_categories` (id, name `Root|Non-Root|...`, sort_order) + add `panel_category_id` to `panel_packages`.
+- Drop `panel_keys` table + `delivered_key`/`apk_link` mutation logic in `approve_panel_order` (panel approval just marks delivered, returns APK link from package).
+- RLS: admin manages `guild_packages` / `panel_categories`; user reads own `guild_orders`, admin manages all.
+- New `app_settings.bkash_number_guild` + `coupon_price` style not needed (price per package).
+
+## Server functions / routes
+
+- `src/server/guild.server.ts` + `guild.functions.ts`:
+  - `scrapeGuild(guildId)` — server fetch the vercel page, regex/parse out name, level, members, leader, glory, logo URL. Return JSON.
+  - `getMyGuildOrders()`, `createGuildOrder()`, `approveGuildOrder()`.
+- Public route `/api/public/guild-info?guild_id=...` thin wrapper if dashboard needs polling.
+- Update `landing.server.ts` to also return `guildPackages` + `panelCategories`.
+
+## Frontend
+
+- **Landing** (`src/routes/index.tsx`): add "GUILD BOTS" section after Panels. Group panels by `panel_category` chips (Root / Non-Root).
+- **Home** (`src/routes/_authenticated/dashboard.index.tsx`): rebuild to mirror landing — same Hero carousel, Likes / Visits / Panels (grouped by category) / Guild Bots sections, but Buy buttons go to in-app order flow instead of `/auth`. Black bg + blue accent buttons.
+- **Dashboard "Coupons" → keep**, add new tab/route **"Guild Bots"** (`dashboard.guild.tsx`):
+  - Pick guild package, enter Guild ID, submit trx + screenshot.
+  - After admin approval, show bot instance card matching screenshot (logo, name, ID, BD flag, members X/Y, leader, total glory, status badge, "Powered by GS STORE" footer). Auto-poll scraped guild info.
+- **Admin**:
+  - `admin.guild-packages.tsx` — CRUD guild packages.
+  - `admin.guild-orders.tsx` — approve/reject + set expiry.
+  - `admin.panel-categories.tsx` — CRUD Root/Non-Root etc.
+  - Update `admin.panels.tsx` — add `panel_category_id` selector, remove key-management UI.
+  - Remove panel keys admin section.
+
+## Theme
+
+- `src/styles.css`: lock `--background` near pure black (`oklch(0.08 0 0)`), `--primary` to vivid blue (`oklch(0.65 0.2 250)`), `--gradient-primary` blue-to-cyan. Cards: `bg-card` with subtle blue border. Buy buttons all use `bg-gradient-primary`.
+
+## Out of scope
+
+- Existing Like/Visit dispatch APIs, bKash flow, RupantorPay, auth.
+- No real bot start/stop — "Launch Bot / Restart" buttons trigger UI feedback only (matches screenshot semantics; backend just tracks order status).
+
+## Open assumption
+
+- Scrape parser: I'll fetch the vercel page server-side and parse the rendered HTML / __NEXT_DATA__ JSON. If the page is fully client-rendered and lacks SSR data, I'll fall back to calling whatever JSON endpoint it uses internally (visible in network tab) — will adjust on first run.
