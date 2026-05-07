@@ -7,7 +7,7 @@ import { getLandingData } from "@/server/landing.functions";
 import {
   Flame, ShoppingCart, Settings as SettingsIcon, User as UserIcon,
   ShieldCheck, Rocket, Headphones, Heart, Eye, KeyRound,
-  Volume2, VolumeX, ChevronLeft, ChevronRight, BadgeCheck, Tag, Sparkles,
+  Volume2, VolumeX, ChevronLeft, ChevronRight, BadgeCheck, Tag, Sparkles, Users,
 } from "lucide-react";
 import gsLogo from "@/assets/gs-logo.jpg";
 
@@ -40,7 +40,10 @@ type Panel = {
   image_url: string | null;
   apk_link: string | null;
   duration_label: string | null;
+  panel_category_id: string | null;
 };
+type PanelCat = { id: string; name: string };
+type GuildPkg = { id: string; name: string; description: string | null; price_bdt: number; image_url: string | null; duration_label: string | null; bot_count: number };
 type Slide = { id: string; image_url: string; link_url: string | null; title: string | null };
 
 function Landing() {
@@ -50,6 +53,8 @@ function Landing() {
   const [panels, setPanels] = useState<Panel[]>([]);
   const [adminSlides, setAdminSlides] = useState<Slide[]>([]);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [guildPkgs, setGuildPkgs] = useState<GuildPkg[]>([]);
+  const [panelCats, setPanelCats] = useState<PanelCat[]>([]);
 
   useEffect(() => {
     if (!loading && user) {
@@ -64,6 +69,8 @@ function Landing() {
       setPanels(data.panels as Panel[]);
       setAdminSlides(((data as any).slides ?? []) as Slide[]);
       setLogoUrl(((data as any).logoUrl ?? null) as string | null);
+      setGuildPkgs(((data as any).guildPackages ?? []) as GuildPkg[]);
+      setPanelCats(((data as any).panelCategories ?? []) as PanelCat[]);
     })();
   }, []);
 
@@ -136,9 +143,14 @@ function Landing() {
 
       {/* Panels section */}
       {panels.length > 0 && (
-        <ProductSection title="PANELS" icon={KeyRound}>
-          {panels.map((p) => (
-            <PanelCard key={p.id} panel={p} />
+        <PanelsByCategory panels={panels} categories={panelCats} />
+      )}
+
+      {/* Guild bots */}
+      {guildPkgs.length > 0 && (
+        <ProductSection title="GUILD BOTS" icon={Users}>
+          {guildPkgs.map((g) => (
+            <GuildPkgCard key={g.id} pkg={g} />
           ))}
         </ProductSection>
       )}
