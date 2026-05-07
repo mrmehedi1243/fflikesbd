@@ -22,6 +22,7 @@ import { Route as AuthenticatedDashboardProfileRouteImport } from './routes/_aut
 import { Route as AuthenticatedDashboardPanelsRouteImport } from './routes/_authenticated/dashboard.panels'
 import { Route as AuthenticatedDashboardPackagesRouteImport } from './routes/_authenticated/dashboard.packages'
 import { Route as AuthenticatedDashboardOrdersRouteImport } from './routes/_authenticated/dashboard.orders'
+import { Route as AuthenticatedDashboardGuildRouteImport } from './routes/_authenticated/dashboard.guild'
 import { Route as AuthenticatedDashboardCouponsRouteImport } from './routes/_authenticated/dashboard.coupons'
 import { Route as AuthenticatedAdminVisitOrdersRouteImport } from './routes/_authenticated/admin.visit-orders'
 import { Route as AuthenticatedAdminSliderRouteImport } from './routes/_authenticated/admin.slider'
@@ -101,6 +102,12 @@ const AuthenticatedDashboardOrdersRoute =
     path: '/orders',
     getParentRoute: () => AuthenticatedDashboardRoute,
   } as any)
+const AuthenticatedDashboardGuildRoute =
+  AuthenticatedDashboardGuildRouteImport.update({
+    id: '/guild',
+    path: '/guild',
+    getParentRoute: () => AuthenticatedDashboardRoute,
+  } as any)
 const AuthenticatedDashboardCouponsRoute =
   AuthenticatedDashboardCouponsRouteImport.update({
     id: '/coupons',
@@ -171,6 +178,7 @@ export interface FileRoutesByFullPath {
   '/admin/slider': typeof AuthenticatedAdminSliderRoute
   '/admin/visit-orders': typeof AuthenticatedAdminVisitOrdersRoute
   '/dashboard/coupons': typeof AuthenticatedDashboardCouponsRoute
+  '/dashboard/guild': typeof AuthenticatedDashboardGuildRoute
   '/dashboard/orders': typeof AuthenticatedDashboardOrdersRoute
   '/dashboard/packages': typeof AuthenticatedDashboardPackagesRoute
   '/dashboard/panels': typeof AuthenticatedDashboardPanelsRoute
@@ -192,6 +200,7 @@ export interface FileRoutesByTo {
   '/admin/slider': typeof AuthenticatedAdminSliderRoute
   '/admin/visit-orders': typeof AuthenticatedAdminVisitOrdersRoute
   '/dashboard/coupons': typeof AuthenticatedDashboardCouponsRoute
+  '/dashboard/guild': typeof AuthenticatedDashboardGuildRoute
   '/dashboard/orders': typeof AuthenticatedDashboardOrdersRoute
   '/dashboard/packages': typeof AuthenticatedDashboardPackagesRoute
   '/dashboard/panels': typeof AuthenticatedDashboardPanelsRoute
@@ -217,6 +226,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/slider': typeof AuthenticatedAdminSliderRoute
   '/_authenticated/admin/visit-orders': typeof AuthenticatedAdminVisitOrdersRoute
   '/_authenticated/dashboard/coupons': typeof AuthenticatedDashboardCouponsRoute
+  '/_authenticated/dashboard/guild': typeof AuthenticatedDashboardGuildRoute
   '/_authenticated/dashboard/orders': typeof AuthenticatedDashboardOrdersRoute
   '/_authenticated/dashboard/packages': typeof AuthenticatedDashboardPackagesRoute
   '/_authenticated/dashboard/panels': typeof AuthenticatedDashboardPanelsRoute
@@ -242,6 +252,7 @@ export interface FileRouteTypes {
     | '/admin/slider'
     | '/admin/visit-orders'
     | '/dashboard/coupons'
+    | '/dashboard/guild'
     | '/dashboard/orders'
     | '/dashboard/packages'
     | '/dashboard/panels'
@@ -263,6 +274,7 @@ export interface FileRouteTypes {
     | '/admin/slider'
     | '/admin/visit-orders'
     | '/dashboard/coupons'
+    | '/dashboard/guild'
     | '/dashboard/orders'
     | '/dashboard/packages'
     | '/dashboard/panels'
@@ -287,6 +299,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/slider'
     | '/_authenticated/admin/visit-orders'
     | '/_authenticated/dashboard/coupons'
+    | '/_authenticated/dashboard/guild'
     | '/_authenticated/dashboard/orders'
     | '/_authenticated/dashboard/packages'
     | '/_authenticated/dashboard/panels'
@@ -397,6 +410,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardOrdersRouteImport
       parentRoute: typeof AuthenticatedDashboardRoute
     }
+    '/_authenticated/dashboard/guild': {
+      id: '/_authenticated/dashboard/guild'
+      path: '/guild'
+      fullPath: '/dashboard/guild'
+      preLoaderRoute: typeof AuthenticatedDashboardGuildRouteImport
+      parentRoute: typeof AuthenticatedDashboardRoute
+    }
     '/_authenticated/dashboard/coupons': {
       id: '/_authenticated/dashboard/coupons'
       path: '/coupons'
@@ -492,6 +512,7 @@ const AuthenticatedAdminRouteWithChildren =
 
 interface AuthenticatedDashboardRouteChildren {
   AuthenticatedDashboardCouponsRoute: typeof AuthenticatedDashboardCouponsRoute
+  AuthenticatedDashboardGuildRoute: typeof AuthenticatedDashboardGuildRoute
   AuthenticatedDashboardOrdersRoute: typeof AuthenticatedDashboardOrdersRoute
   AuthenticatedDashboardPackagesRoute: typeof AuthenticatedDashboardPackagesRoute
   AuthenticatedDashboardPanelsRoute: typeof AuthenticatedDashboardPanelsRoute
@@ -502,6 +523,7 @@ interface AuthenticatedDashboardRouteChildren {
 const AuthenticatedDashboardRouteChildren: AuthenticatedDashboardRouteChildren =
   {
     AuthenticatedDashboardCouponsRoute: AuthenticatedDashboardCouponsRoute,
+    AuthenticatedDashboardGuildRoute: AuthenticatedDashboardGuildRoute,
     AuthenticatedDashboardOrdersRoute: AuthenticatedDashboardOrdersRoute,
     AuthenticatedDashboardPackagesRoute: AuthenticatedDashboardPackagesRoute,
     AuthenticatedDashboardPanelsRoute: AuthenticatedDashboardPanelsRoute,
